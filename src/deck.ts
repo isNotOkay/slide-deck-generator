@@ -9,33 +9,37 @@ function escapeHtml(value: string): string {
     return value
         .replaceAll("&", "&amp;")
         .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;");
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
 }
 
 function renderTitleSlide(slide: TitleSlide): string {
     return `
-    <section class="slide-title">
-      <h1>${escapeHtml(slide.title)}</h1>
-      ${
+        <section class="slide-title">
+            <h1>${escapeHtml(slide.title)}</h1>
+
+            ${
         slide.subtitle
             ? `<p>${escapeHtml(slide.subtitle)}</p>`
             : ""
     }
-    </section>
-  `;
+        </section>
+    `;
 }
 
 function renderContentSlide(slide: ContentSlide): string {
     return `
-    <section class="slide-content">
-      <h2>${escapeHtml(slide.title)}</h2>
-      <ul>
-        ${slide.bullets
+        <section class="slide-content">
+            <h2>${escapeHtml(slide.title)}</h2>
+
+            <ul>
+                ${slide.bullets
         .map(item => `<li>${escapeHtml(item)}</li>`)
         .join("")}
-      </ul>
-    </section>
-  `;
+            </ul>
+        </section>
+    `;
 }
 
 function renderSlide(slide: Slide): string {
@@ -48,33 +52,8 @@ function renderSlide(slide: Slide): string {
     }
 }
 
-export function renderDeck(deck: Deck): string {
-    return `
-<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>${escapeHtml(deck.title)}</title>
-
-  <link rel="stylesheet" href="./reveal.css">
-  <link rel="stylesheet" href="./theme.css">
-</head>
-<body>
-  <div class="reveal">
-    <div class="slides">
-      ${deck.slides.map(renderSlide).join("\n")}
-    </div>
-  </div>
-
-  <script src="./reveal.js"></script>
-  <script>
-    Reveal.initialize({
-      transition: "none",
-      width: 1600,
-      height: 900
-    });
-  </script>
-</body>
-</html>
-`;
+export function renderSlides(deck: Deck): string {
+    return deck.slides
+        .map(renderSlide)
+        .join("\n");
 }

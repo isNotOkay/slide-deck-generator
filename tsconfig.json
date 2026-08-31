@@ -1,8 +1,9 @@
 {
     "compilerOptions": {
         "target": "ESNext",
-        "module": "NodeNext",
-        "moduleResolution": "NodeNext",
+
+        "module": "ESNext",
+        "moduleResolution": "Bundler",
 
         "strict": true,
         "noEmit": true,
@@ -11,7 +12,7 @@
         "verbatimModuleSyntax": true,
         "allowImportingTsExtensions": true,
 
-        "types": ["node"]
+        "types": ["vite/client"]
     },
     "include": ["src/**/*.ts"]
 }
