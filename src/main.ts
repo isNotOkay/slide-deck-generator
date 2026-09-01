@@ -274,8 +274,8 @@ async function loadInitialContent(): Promise<void> {
         await fetchJson<unknown>(`/decks/${encodeURIComponent(deckId)}`)
     );
     slides.innerHTML = renderSlides(deck);
-    buildSlideNavigator(deck);
     setNavigatorVisible(true);
+    buildSlideNavigator(deck);
     document.title = deck.title;
 }
 
