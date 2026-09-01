@@ -165,7 +165,7 @@
     align-items: flex-start;
 }
 
-.slide-title::before {
+section.slide-title::before {
     content: "";
 
     display: block;
@@ -540,4 +540,24 @@
 .reveal .progress {
     color: var(--blue-600);
     height: 4px;
+}
+
+
+/* ---------------------------------------------------------
+   Reveal PDF export
+   --------------------------------------------------------- */
+
+/* Reveal's print stylesheet resets section padding to zero. Restore the
+   authored slide inset while keeping slide backgrounds full-bleed. */
+html.reveal-print .reveal .slides section.slide {
+    padding:
+            var(--slide-padding-y)
+            var(--slide-padding-x) !important;
+}
+
+/* Reveal clones each slide into a background element for print layout. Carry
+   section backgrounds onto the page so they remain full-bleed while the real
+   slide content is vertically centered. */
+html.reveal-print .reveal .slides .pdf-page:has(> .slide-background.slide-section) {
+    background: var(--blue-900) !important;
 }
