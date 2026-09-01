@@ -1,0 +1,36 @@
+@baseUrl = http://127.0.0.1:3001
+@deckId = runtime-http-test
+
+### List available decks
+GET {{baseUrl}}/api/decks
+
+### Load an existing deck
+GET {{baseUrl}}/api/decks/runtime-final-test
+
+### Create or replace a test deck
+PUT {{baseUrl}}/api/decks/{{deckId}}
+Content-Type: application/json
+
+{
+  "title": "HTTP test deck",
+  "slides": [
+    {
+      "type": "title",
+      "title": "HTTP test deck",
+      "subtitle": "Created through api.http"
+    },
+    {
+      "type": "content",
+      "title": "Test content",
+      "body": "This deck verifies the JSON-backed API.",
+      "bullets": [
+        "Created with PUT",
+        "Validated by the API",
+        "Persisted as JSON"
+      ]
+    }
+  ]
+}
+
+### Load the created deck
+GET {{baseUrl}}/api/decks/{{deckId}}
