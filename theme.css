@@ -87,6 +87,35 @@
     font-family: inherit;
 }
 
+.deck-status {
+    display: flex !important;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding: var(--slide-padding-y) var(--slide-padding-x);
+}
+
+.deck-status h1 {
+    max-width: 1050px;
+    margin: 0;
+    font-size: 68px;
+    line-height: 1.08;
+}
+
+.deck-status p {
+    max-width: 900px;
+    margin: 24px 0 0;
+    color: var(--muted);
+}
+
+.deck-status ul {
+    margin: 32px 0 0;
+}
+
+.deck-status a {
+    color: var(--accent);
+}
+
 
 /* ---------------------------------------------------------
    Shared slide headings

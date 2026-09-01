@@ -3,15 +3,20 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "dev": "concurrently --kill-others-on-fail \"vite\" \"npm run api\"",
+    "api": "tsx server/index.ts",
+    "build": "npm run check && vite build",
     "preview": "vite preview",
+    "test": "tsx --test server/index.test.ts",
     "check": "tsc --noEmit"
   },
   "dependencies": {
     "reveal.js": "^6.0.1"
   },
   "devDependencies": {
+    "@types/node": "^26.4.0",
+    "concurrently": "^10.0.5",
+    "tsx": "^4.23.13",
     "typescript": "^7.0.2",
     "vite": "^7.1.3"
   }

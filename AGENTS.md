@@ -6,7 +6,7 @@ This is a Vite + TypeScript application that uses Reveal.js to display slide dec
 
 - Define deck and slide data using the types in `src/slides.ts`.
 - Keep rendering behavior in `src/deck.ts`.
-- Use `src/demo.ts` for demo content and `theme.css` for presentation styling.
+- Use API-managed JSON files in `data/decks/` for deck content and `theme.css` for presentation styling.
 - Preserve HTML escaping when rendering user-provided slide content.
 
 ## Development
