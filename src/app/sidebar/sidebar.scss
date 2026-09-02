@@ -14,10 +14,19 @@ header {
   display: flex;
   min-height: 48px;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: 8px;
   padding: 10px 14px;
   border-bottom: 1px solid var(--slate-200);
+}
+.export-button .material-symbols-outlined {
+  display: block;
+  font-family: "Material Symbols Outlined";
+  font-size: 20px;
+  font-weight: 400;
+  font-style: normal;
+  line-height: 1;
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 20;
 }
 .count { color: var(--slate-600); font-size: 16px; font-variant-numeric: tabular-nums; font-weight: 650; white-space: nowrap; }
 

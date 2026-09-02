@@ -1,3 +1,13 @@
+@use "@angular/material" as mat;
+
+html {
+  @include mat.theme((
+    color: mat.$blue-palette,
+    typography: system-ui,
+    density: 0,
+  ));
+}
+
 :root {
   --blue-50: #eff6ff;
   --blue-100: #dbeafe;
