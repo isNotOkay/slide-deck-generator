@@ -17,8 +17,6 @@ export type SlideReorder = Pick<CdkDragDrop<readonly SlideModel[]>, "previousInd
 export class Sidebar {
   readonly slides = input.required<readonly SlideModel[]>();
   readonly activeIndex = input.required<number>();
-  readonly saving = input(false);
-  readonly saveError = input<string | null>(null);
 
   readonly slideSelected = output<number>();
   readonly slidesReordered = output<SlideReorder>();

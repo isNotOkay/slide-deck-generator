@@ -28,8 +28,6 @@ export class Presentation {
   protected readonly deck = signal<Deck | null>(null);
   protected readonly loading = signal(true);
   protected readonly loadError = signal<string | null>(null);
-  protected readonly saving = signal(false);
-  protected readonly saveError = signal<string | null>(null);
   protected readonly announcement = signal("");
 
   protected readonly slideCount = computed(() => this.deck()?.slides.length ?? 0);
@@ -78,7 +76,7 @@ export class Presentation {
 
   protected async reorderSlides(event: SlideReorder): Promise<void> {
     const previousDeck = this.deck();
-    if (!previousDeck || this.saving() || event.previousIndex === event.currentIndex) return;
+    if (!previousDeck || event.previousIndex === event.currentIndex) return;
 
     const previousIndex = this.currentIndex();
     const selectedSlide = previousDeck.slides[previousIndex];
@@ -88,9 +86,6 @@ export class Presentation {
     const optimisticDeck = { ...previousDeck, slides: reorderedSlides };
     const selectedIndex = selectedSlide ? reorderedSlides.indexOf(selectedSlide) : 0;
     this.deck.set(optimisticDeck);
-    this.saving.set(true);
-    this.saveError.set(null);
-    this.announcement.set("Saving slide order.");
 
     try {
       await this.navigateTo(selectedIndex, true);
@@ -100,10 +95,7 @@ export class Presentation {
       this.deck.set(previousDeck);
       await this.navigateTo(previousIndex, true);
       const message = error instanceof Error ? error.message : "The slide order could not be saved.";
-      this.saveError.set(message);
       this.announcement.set(`Slide order was restored. ${message}`);
-    } finally {
-      this.saving.set(false);
     }
   }
 

@@ -20,8 +20,6 @@ header {
   border-bottom: 1px solid var(--slate-200);
 }
 .count { color: var(--slate-600); font-size: 16px; font-variant-numeric: tabular-nums; font-weight: 650; white-space: nowrap; }
-.save-status { color: var(--muted); font-size: 11px; white-space: nowrap; }
-.save-status.is-error { color: #b91c1c; font-weight: 650; }
 
 ol {
   display: flex;
