@@ -1,7 +1,14 @@
 <aside aria-label="Slide navigation">
   <header>
-    <button matButton="outlined" type="button" class="export-button">
-      Export
+    <button
+      matButton="outlined"
+      type="button"
+      class="export-button"
+      [disabled]="slides().length === 0 || exporting()"
+      [attr.aria-busy]="exporting() ? 'true' : null"
+      (click)="exportRequested.emit()"
+    >
+      {{ exporting() ? "Exporting…" : "Export" }}
     </button>
     <span class="count">{{ slides().length }} {{ slides().length === 1 ? "slide" : "slides" }}</span>
   </header>

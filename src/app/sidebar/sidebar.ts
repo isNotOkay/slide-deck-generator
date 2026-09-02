@@ -18,9 +18,11 @@ export type SlideReorder = Pick<CdkDragDrop<readonly SlideModel[]>, "previousInd
 export class Sidebar {
   readonly slides = input.required<readonly SlideModel[]>();
   readonly activeIndex = input.required<number>();
+  readonly exporting = input(false);
 
   readonly slideSelected = output<number>();
   readonly slidesReordered = output<SlideReorder>();
+  readonly exportRequested = output<void>();
 
   private readonly thumbnailButtons = viewChildren<ElementRef<HTMLButtonElement>>("thumbnail");
 

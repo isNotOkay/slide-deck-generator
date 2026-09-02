@@ -3,8 +3,10 @@
     <app-sidebar
       [slides]="loadedDeck.slides"
       [activeIndex]="currentIndex()"
+      [exporting]="exporting()"
       (slideSelected)="navigateTo($event)"
       (slidesReordered)="reorderSlides($event)"
+      (exportRequested)="exportDeck()"
     />
   } @else {
     <div class="sidebar-placeholder" aria-hidden="true"></div>
@@ -44,6 +46,14 @@
               />
             }
           </div>
+        }
+      }
+    </div>
+
+    <div #exportStage class="export-stage" aria-hidden="true">
+      @if (deck(); as exportDeck) {
+        @for (slide of exportDeck.slides; track slide) {
+          <app-slide class="export-slide" [slide]="slide" />
         }
       }
     </div>

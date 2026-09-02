@@ -20,6 +20,23 @@
 .main-slide { display: none; width: 100%; border-radius: clamp(4px, .6vw, 10px); box-shadow: 0 18px 55px rgb(15 23 42 / 15%); }
 .main-slide.is-active { display: block; }
 
+.export-stage {
+  position: fixed;
+  top: 0;
+  left: -20000px;
+  width: 1600px;
+  pointer-events: none;
+  z-index: -1;
+}
+.export-stage app-slide.export-slide {
+  display: block;
+  width: 1600px;
+  height: 900px;
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
 .status-card {
   width: min(560px, 90%);
   padding: clamp(24px, 5vw, 52px);

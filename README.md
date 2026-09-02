@@ -43,4 +43,4 @@ npm run preview  # Preview the production build locally
 - `server/index.ts` provides the JSON-backed deck API.
 - `data/deck.json` is the API-managed presentation file.
 
-Use the browser Print dialog and Save as PDF to export all slides in 16:9 format.
+Click Export in the slide sidebar to download all slides in the current order as a 16:9 PDF.

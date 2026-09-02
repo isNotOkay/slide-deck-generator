@@ -1,12 +1,13 @@
 import { moveItemInArray } from "@angular/cdk/drag-drop";
 import { MatIconButton } from "@angular/material/button";
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, effect, ElementRef, inject, input, signal, viewChild } from "@angular/core";
 import { Title } from "@angular/platform-browser";
 import { Router } from "@angular/router";
 import { firstValueFrom } from "rxjs";
 
 import type { Deck } from "../../slides";
 import { DeckRepository } from "../deck.repository";
+import { PdfExportService } from "../pdf-export.service";
 import { Sidebar, type SlideReorder } from "../sidebar/sidebar";
 import { Slide } from "../slide/slide";
 
@@ -22,13 +23,16 @@ export class Presentation {
   readonly slideNumber = input.required<string>();
 
   private readonly repository = inject(DeckRepository);
+  private readonly pdfExport = inject(PdfExportService);
   private readonly router = inject(Router);
   private readonly documentTitle = inject(Title);
+  private readonly exportStage = viewChild<ElementRef<HTMLElement>>("exportStage");
 
   protected readonly deck = signal<Deck | null>(null);
   protected readonly loading = signal(true);
   protected readonly loadError = signal<string | null>(null);
   protected readonly announcement = signal("");
+  protected readonly exporting = signal(false);
 
   protected readonly slideCount = computed(() => this.deck()?.slides.length ?? 0);
   protected readonly currentIndex = computed(() =>
@@ -76,7 +80,7 @@ export class Presentation {
 
   protected async reorderSlides(event: SlideReorder): Promise<void> {
     const previousDeck = this.deck();
-    if (!previousDeck || event.previousIndex === event.currentIndex) return;
+    if (!previousDeck || this.exporting() || event.previousIndex === event.currentIndex) return;
 
     const previousIndex = this.currentIndex();
     const selectedSlide = previousDeck.slides[previousIndex];
@@ -96,6 +100,28 @@ export class Presentation {
       await this.navigateTo(previousIndex, true);
       const message = error instanceof Error ? error.message : "The slide order could not be saved.";
       this.announcement.set(`Slide order was restored. ${message}`);
+    }
+  }
+
+  protected async exportDeck(): Promise<void> {
+    const deck = this.deck();
+    const stage = this.exportStage()?.nativeElement;
+    if (!deck || deck.slides.length === 0 || !stage || this.exporting()) return;
+
+    const slides = [...stage.querySelectorAll<HTMLElement>(".export-slide")];
+    if (slides.length !== deck.slides.length) return;
+
+    this.exporting.set(true);
+    this.announcement.set("Preparing PDF export.");
+
+    try {
+      await this.pdfExport.download(deck, slides);
+      this.announcement.set("PDF downloaded.");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "The PDF could not be created.";
+      this.announcement.set(`PDF export failed. ${message}`);
+    } finally {
+      this.exporting.set(false);
     }
   }
 
