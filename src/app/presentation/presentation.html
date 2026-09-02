@@ -1,39 +1,94 @@
-<main class="presentation-shell">
-  @if (deck(); as loadedDeck) {
-    <app-sidebar
-      [slides]="loadedDeck.slides"
-      [activeIndex]="currentIndex()"
-      [exporting]="exporting()"
-      (slideSelected)="navigateTo($event)"
-      (slidesReordered)="reorderSlides($event)"
-      (exportRequested)="exportDeck()"
-    />
-  } @else {
-    <div class="sidebar-placeholder" aria-hidden="true"></div>
-  }
+<div class="presentation-shell">
+  <mat-toolbar class="toolbar app-chrome">
+    <button
+      matIconButton
+      type="button"
+      class="drawer-toggle"
+      [attr.aria-label]="drawerIsOpen() ? 'Close slide navigation' : 'Open slide navigation'"
+      [attr.aria-expanded]="drawerIsOpen()"
+      (click)="toggleDrawer()"
+    >
+      <mat-icon fontSet="material-symbols-outlined" aria-hidden="true">menu</mat-icon>
+    </button>
+    <span class="deck-title">{{ deck()?.title || "Presentation" }}</span>
 
-  <section class="workspace" aria-label="Presentation viewer">
-    <div class="stage">
+    <nav class="toolbar-controls" aria-label="Presentation controls">
+      <button
+        matIconButton
+        type="button"
+        aria-label="Previous slide"
+        [disabled]="!canGoPrevious()"
+        (click)="navigateTo(currentIndex() - 1)"
+      >
+        <mat-icon fontSet="material-symbols-outlined" aria-hidden="true">chevron_left</mat-icon>
+      </button>
+      <span class="counter" aria-live="polite">
+        {{ slideCount() === 0 ? 0 : currentIndex() + 1 }} / {{ slideCount() }}
+      </span>
+      <button
+        matIconButton
+        type="button"
+        aria-label="Next slide"
+        [disabled]="!canGoNext()"
+        (click)="navigateTo(currentIndex() + 1)"
+      >
+        <mat-icon fontSet="material-symbols-outlined" aria-hidden="true">chevron_right</mat-icon>
+      </button>
+    </nav>
+  </mat-toolbar>
+
+  <mat-sidenav-container class="drawer-shell">
+    <mat-sidenav
+      #drawer
+      class="sidebar"
+      [mode]="drawerMode()"
+      [opened]="drawerIsOpen()"
+      (openedChange)="setDrawerOpen($event)"
+    >
+      @if (deck(); as loadedDeck) {
+        <app-sidebar
+          [slides]="loadedDeck.slides"
+          [activeIndex]="currentIndex()"
+          [exporting]="exporting()"
+          (slideSelected)="selectSlide($event)"
+          (slidesReordered)="reorderSlides($event)"
+          (exportRequested)="exportDeck()"
+        />
+      } @else {
+        <div class="sidebar-placeholder" aria-hidden="true"></div>
+      }
+    </mat-sidenav>
+
+    <mat-sidenav-content class="workspace">
+      <main class="stage" aria-label="Presentation viewer">
       @if (loading()) {
-        <div class="status-card loading-chrome" role="status">
-          <span class="spinner" aria-hidden="true"></span>
-          <h2>Loading presentation</h2>
-          <p>Fetching the latest slides…</p>
-        </div>
+        <mat-card class="status-card loading-chrome" appearance="outlined" role="status">
+          <mat-card-content>
+            <mat-progress-spinner mode="indeterminate" diameter="32" aria-label="Loading presentation" />
+            <h2>Loading presentation</h2>
+            <p>Fetching the latest slides…</p>
+          </mat-card-content>
+        </mat-card>
       } @else if (loadError(); as message) {
-        <div class="status-card error-chrome" role="alert">
-          <p class="status-kicker">API error</p>
-          <h2>Unable to load presentation</h2>
-          <p>{{ message }}</p>
-          <button type="button" (click)="loadDeck()">Try again</button>
-        </div>
+        <mat-card class="status-card error-chrome" appearance="outlined" role="alert">
+          <mat-card-content>
+            <p class="status-kicker">API error</p>
+            <h2>Unable to load presentation</h2>
+            <p>{{ message }}</p>
+          </mat-card-content>
+          <mat-card-actions align="start">
+            <button matButton="filled" type="button" (click)="loadDeck()">Try again</button>
+          </mat-card-actions>
+        </mat-card>
       } @else if (deck(); as loadedDeck) {
         @if (loadedDeck.slides.length === 0) {
-          <div class="status-card empty-chrome">
-            <p class="status-kicker">Empty deck</p>
-            <h2>No slides yet</h2>
-            <p>Add slides through <code>PUT /api/deck</code>. They will appear here automatically after a reload.</p>
-          </div>
+          <mat-card class="status-card empty-chrome" appearance="outlined">
+            <mat-card-content>
+              <p class="status-kicker">Empty deck</p>
+              <h2>No slides yet</h2>
+              <p>Add slides through <code>PUT /api/deck</code>. They will appear here automatically after a reload.</p>
+            </mat-card-content>
+          </mat-card>
         } @else {
           <div class="slide-stack">
             @for (slide of loadedDeck.slides; track slide; let index = $index) {
@@ -48,40 +103,15 @@
           </div>
         }
       }
-    </div>
+      </main>
 
-    <div #exportStage class="export-stage" aria-hidden="true">
-      @if (deck(); as exportDeck) {
-        @for (slide of exportDeck.slides; track slide) {
-          <app-slide class="export-slide" [slide]="slide" />
+      <div #exportStage class="export-stage" aria-hidden="true">
+        @if (deck(); as exportDeck) {
+          @for (slide of exportDeck.slides; track slide) {
+            <app-slide class="export-slide" [slide]="slide" />
+          }
         }
-      }
-    </div>
-
-    <nav class="controls app-chrome" aria-label="Presentation controls">
-      <button
-        matIconButton
-        type="button"
-        aria-label="Previous slide"
-        [disabled]="!canGoPrevious()"
-        (click)="navigateTo(currentIndex() - 1)"
-      >
-        <span class="material-symbols-outlined" aria-hidden="true">chevron_left</span>
-      </button>
-      <span class="counter" aria-live="polite">
-        {{ slideCount() === 0 ? 0 : currentIndex() + 1 }} / {{ slideCount() }}
-      </span>
-      <button
-        matIconButton
-        type="button"
-        aria-label="Next slide"
-        [disabled]="!canGoNext()"
-        (click)="navigateTo(currentIndex() + 1)"
-      >
-        <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
-      </button>
-    </nav>
-
-    <p class="visually-hidden" aria-live="assertive" aria-atomic="true">{{ announcement() }}</p>
-  </section>
-</main>
+      </div>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+</div>

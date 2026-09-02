@@ -8,9 +8,8 @@
       [attr.aria-busy]="exporting() ? 'true' : null"
       (click)="exportRequested.emit()"
     >
-      {{ exporting() ? "Exporting…" : "Export" }}
+      <span>{{ exporting() ? "Exporting…" : "Export" }}</span>
     </button>
-    <span class="count">{{ slides().length }} {{ slides().length === 1 ? "slide" : "slides" }}</span>
   </header>
 
   <ol
@@ -44,7 +43,7 @@
             [attr.aria-label]="'Reorder slide ' + (index + 1)"
             title="Drag to reorder"
           >
-            <span aria-hidden="true">⠿</span>
+            <mat-icon fontSet="material-symbols-outlined" aria-hidden="true">drag_indicator</mat-icon>
           </button>
         </div>
         <div class="drag-placeholder" *cdkDragPlaceholder></div>

@@ -1,6 +1,15 @@
 import { moveItemInArray } from "@angular/cdk/drag-drop";
+import { BreakpointObserver } from "@angular/cdk/layout";
+import type { MatDrawerMode } from "@angular/material/sidenav";
 import { MatIconButton } from "@angular/material/button";
+import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
+import { MatCard, MatCardActions, MatCardContent } from "@angular/material/card";
+import { MatIcon } from "@angular/material/icon";
+import { MatProgressSpinner } from "@angular/material/progress-spinner";
+import { MatSidenavContainer, MatSidenavContent, MatSidenav } from "@angular/material/sidenav";
+import { MatToolbar } from "@angular/material/toolbar";
 import { ChangeDetectionStrategy, Component, computed, effect, ElementRef, inject, input, signal, viewChild } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { Title } from "@angular/platform-browser";
 import { Router } from "@angular/router";
 import { firstValueFrom } from "rxjs";
@@ -13,7 +22,21 @@ import { Slide } from "../slide/slide";
 
 @Component({
   selector: "app-presentation",
-  imports: [Sidebar, Slide, MatIconButton],
+  imports: [
+    Sidebar,
+    Slide,
+    MatCard,
+    MatCardActions,
+    MatCardContent,
+    MatIconButton,
+    MatIcon,
+    MatProgressSpinner,
+    MatSnackBarModule,
+    MatSidenav,
+    MatSidenavContainer,
+    MatSidenavContent,
+    MatToolbar
+  ],
   templateUrl: "./presentation.html",
   styleUrl: "./presentation.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -26,13 +49,17 @@ export class Presentation {
   private readonly pdfExport = inject(PdfExportService);
   private readonly router = inject(Router);
   private readonly documentTitle = inject(Title);
+  private readonly snackBar = inject(MatSnackBar);
+  private readonly breakpointObserver = inject(BreakpointObserver);
+  private readonly drawer = viewChild<MatSidenav>("drawer");
   private readonly exportStage = viewChild<ElementRef<HTMLElement>>("exportStage");
 
   protected readonly deck = signal<Deck | null>(null);
   protected readonly loading = signal(true);
   protected readonly loadError = signal<string | null>(null);
-  protected readonly announcement = signal("");
   protected readonly exporting = signal(false);
+  protected readonly isMobile = signal(false);
+  protected readonly drawerOpened = signal(false);
 
   protected readonly slideCount = computed(() => this.deck()?.slides.length ?? 0);
   protected readonly currentIndex = computed(() =>
@@ -40,6 +67,8 @@ export class Presentation {
   );
   protected readonly canGoPrevious = computed(() => this.slideCount() > 0 && this.currentIndex() > 0);
   protected readonly canGoNext = computed(() => this.slideCount() > 0 && this.currentIndex() < this.slideCount() - 1);
+  protected readonly drawerMode = computed<MatDrawerMode>(() => this.isMobile() ? "over" : "side");
+  protected readonly drawerIsOpen = computed(() => !this.isMobile() || this.drawerOpened());
 
   constructor() {
     effect(() => {
@@ -53,6 +82,11 @@ export class Presentation {
       }
     });
 
+    this.breakpointObserver.observe("(max-width: 720px)").pipe(takeUntilDestroyed()).subscribe(({ matches }) => {
+      this.isMobile.set(matches);
+      this.drawerOpened.set(!matches);
+    });
+
     this.loadDeck();
   }
 
@@ -64,12 +98,31 @@ export class Presentation {
       next: deck => {
         this.deck.set(deck);
         this.loading.set(false);
+        this.snackBar.dismiss();
       },
       error: (error: Error) => {
         this.loadError.set(error.message);
         this.loading.set(false);
+        this.showError(`Unable to load presentation. ${error.message}`);
       }
     });
+  }
+
+  protected setDrawerOpen(open: boolean): void {
+    if (this.isMobile()) {
+      this.drawerOpened.set(open);
+    }
+  }
+
+  protected toggleDrawer(): void {
+    void this.drawer()?.toggle();
+  }
+
+  protected selectSlide(index: number): void {
+    void this.navigateTo(index);
+    if (this.isMobile()) {
+      void this.drawer()?.close();
+    }
   }
 
   protected navigateTo(index: number, replaceUrl = false): Promise<boolean> {
@@ -94,12 +147,11 @@ export class Presentation {
     try {
       await this.navigateTo(selectedIndex, true);
       await firstValueFrom(this.repository.save(optimisticDeck));
-      this.announcement.set("Slide order saved.");
     } catch (error) {
       this.deck.set(previousDeck);
       await this.navigateTo(previousIndex, true);
       const message = error instanceof Error ? error.message : "The slide order could not be saved.";
-      this.announcement.set(`Slide order was restored. ${message}`);
+      this.showError(`Slide order was restored. ${message}`);
     }
   }
 
@@ -112,14 +164,12 @@ export class Presentation {
     if (slides.length !== deck.slides.length) return;
 
     this.exporting.set(true);
-    this.announcement.set("Preparing PDF export.");
 
     try {
       await this.pdfExport.download(deck, slides);
-      this.announcement.set("PDF downloaded.");
     } catch (error) {
       const message = error instanceof Error ? error.message : "The PDF could not be created.";
-      this.announcement.set(`PDF export failed. ${message}`);
+      this.showError(`PDF export failed. ${message}`);
     } finally {
       this.exporting.set(false);
     }
@@ -152,5 +202,14 @@ export class Presentation {
   private isEditable(target: EventTarget | null): boolean {
     if (!(target instanceof HTMLElement)) return false;
     return target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName);
+  }
+
+  private showError(message: string): void {
+    this.snackBar.open(message, "Dismiss", {
+      duration: 7000,
+      horizontalPosition: "end",
+      politeness: "assertive",
+      verticalPosition: "bottom"
+    });
   }
 }

@@ -1,24 +1,124 @@
-:host { display: block; height: 100%; }
+:host {
+  display: block;
+  height: 100%;
+}
 
 .presentation-shell {
   display: grid;
-  grid-template-columns: clamp(180px, 20vw, 290px) minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
   width: 100%;
   height: 100%;
   min-height: 0;
   overflow: hidden;
-  background: var(--slate-100);
+  background: var(--mat-sys-surface-container-low);
 }
 
-.sidebar-placeholder { border-right: 1px solid var(--slate-200); background: white; }
-.workspace { display: grid; grid-template-rows: minmax(0, 1fr) auto; min-width: 0; min-height: 0; overflow: hidden; }
-.status-kicker { margin: 0 0 2px; color: var(--blue-600); font-size: 10px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
+.drawer-shell {
+  height: 100%;
+  min-height: 0;
+  background: var(--mat-sys-surface-container-low);
+}
 
-.stage { container-type: size; display: grid; min-width: 0; min-height: 0; place-items: center; padding: clamp(12px, 2.4vw, 34px); overflow: hidden; }
-.slide-stack { display: grid; width: min(100cqw, calc(100cqh * 16 / 9)); max-width: 100%; aspect-ratio: 16 / 9; place-items: center; }
-.main-slide { display: none; width: 100%; border-radius: clamp(4px, .6vw, 10px); box-shadow: 0 18px 55px rgb(15 23 42 / 15%); }
-.main-slide.is-active { display: block; }
+.sidebar {
+  width: clamp(220px, 20vw, 290px);
+  border-right: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface);
+  box-shadow: var(--mat-sys-level1);
+}
+
+.sidebar-placeholder {
+  width: 100%;
+  height: 100%;
+  background: var(--mat-sys-surface);
+}
+
+.workspace {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.toolbar {
+  min-width: 0;
+  min-height: 64px;
+  padding: 0 20px;
+  gap: 8px;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+}
+
+.drawer-toggle {
+  display: none;
+}
+
+.deck-title {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-title-large);
+  letter-spacing: var(--mat-sys-title-large-tracking);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.toolbar-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+}
+
+.toolbar-controls mat-icon,
+.drawer-toggle mat-icon {
+  width: 24px;
+  height: 24px;
+  font-family: "Material Symbols Outlined";
+  font-size: 24px;
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+}
+
+.counter {
+  min-width: 52px;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.stage {
+  container-type: size;
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  place-items: center;
+  padding: clamp(16px, 2.4vw, 34px);
+  overflow: hidden;
+}
+
+.slide-stack {
+  display: grid;
+  width: min(100cqw, calc(100cqh * 16 / 9));
+  max-width: 100%;
+  aspect-ratio: 16 / 9;
+  place-items: center;
+}
+
+.main-slide {
+  display: none;
+  width: 100%;
+  border-radius: clamp(4px, .6vw, 10px);
+  box-shadow: var(--mat-sys-level3);
+}
+
+.main-slide.is-active {
+  display: block;
+}
 
 .export-stage {
   position: fixed;
@@ -28,6 +128,7 @@
   pointer-events: none;
   z-index: -1;
 }
+
 .export-stage app-slide.export-slide {
   display: block;
   width: 1600px;
@@ -39,36 +140,63 @@
 
 .status-card {
   width: min(560px, 90%);
+}
+
+.status-card mat-card-content {
   padding: clamp(24px, 5vw, 52px);
-  border: 1px solid var(--slate-200);
-  border-radius: 16px;
-  background: white;
-  box-shadow: 0 14px 40px rgb(15 23 42 / 8%);
 }
-.status-card h2 { margin: 6px 0 12px; color: var(--slate-900); font-size: clamp(24px, 4vw, 38px); line-height: 1.1; }
-.status-card p { margin: 0; color: var(--slate-600); line-height: 1.55; }
-.status-card button { margin-top: 24px; padding: 10px 16px; border: 0; border-radius: 8px; background: var(--blue-600); color: white; font: inherit; font-weight: 650; cursor: pointer; }
-.status-card button:hover { background: var(--blue-700); }
-.spinner { display: block; width: 28px; height: 28px; margin-bottom: 18px; border: 3px solid var(--blue-100); border-top-color: var(--blue-600); border-radius: 50%; animation: spin .8s linear infinite; }
-@keyframes spin { to { transform: rotate(1turn); } }
 
-.controls { display: flex; align-items: center; justify-content: flex-end; gap: 2px; min-height: 56px; padding: 9px 16px; border-top: 1px solid var(--slate-200); background: rgb(255 255 255 / 90%); }
-.controls button[matIconButton] { width: 38px; height: 38px; padding: 0; border: 0 !important; border-radius: 50%; background: transparent; color: var(--slate-700); font: inherit; line-height: 1; }
-.controls button[matIconButton] .material-symbols-outlined {
-  display: block;
-  font-family: "Material Symbols Outlined";
-  font-size: 24px;
-  font-weight: 400;
-  font-style: normal;
-  line-height: 1;
-  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+.status-card mat-card-actions {
+  padding: 0 clamp(24px, 5vw, 52px) clamp(24px, 5vw, 40px);
 }
-.controls button[matIconButton]:hover:not(:disabled), .controls button[matIconButton]:focus-visible { border: 0 !important; background: var(--slate-100); color: var(--blue-700); outline: none; }
-.controls button[matIconButton]:disabled { cursor: not-allowed; opacity: .38; }
-.counter { min-width: 48px; color: var(--slate-600); font-size: 16px; font-variant-numeric: tabular-nums; text-align: center; }
 
-@media (max-width: 560px) {
-  .presentation-shell { grid-template-columns: 145px minmax(0, 1fr); }
-  .stage { padding: 8px; }
-  .controls { padding-inline: 8px; }
+.status-card mat-progress-spinner {
+  margin-bottom: 18px;
+}
+
+.status-card h2 {
+  margin: 6px 0 12px;
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-headline-small);
+}
+
+.status-card p {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-large);
+  line-height: 1.55;
+}
+
+.status-kicker {
+  margin-bottom: 2px !important;
+  color: var(--mat-sys-primary) !important;
+  font-size: 10px !important;
+  font-weight: 750 !important;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 720px) {
+  .drawer-toggle {
+    display: inline-flex;
+  }
+
+  .toolbar {
+    min-height: 56px;
+    padding-inline: 8px 12px;
+  }
+
+  .stage {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 420px) {
+  .deck-title {
+    font-size: 18px;
+  }
+
+  .stage {
+    padding: 8px;
+  }
 }

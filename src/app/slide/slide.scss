@@ -4,6 +4,19 @@
   width: 100%;
   aspect-ratio: 16 / 9;
   overflow: hidden;
+  --blue-50: #eff6ff;
+  --blue-100: #dbeafe;
+  --blue-300: #93c5fd;
+  --blue-700: #1d4ed8;
+  --blue-900: #1e3a8a;
+  --slate-50: #f8fafc;
+  --slate-200: #e2e8f0;
+  --slate-500: #64748b;
+  --slate-700: #334155;
+  --slate-900: #0f172a;
+  --background: #ffffff;
+  --text: var(--slate-900);
+  --accent: #2563eb;
   background: var(--background);
   color: var(--text);
 }
