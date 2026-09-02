@@ -132,7 +132,11 @@
 }
 
 .review-metric-moved {
-  border-color: color-mix(in srgb, var(--mat-sys-on-secondary-container) 18%, var(--mat-sys-secondary-container));
+  border-color: color-mix(
+          in srgb,
+          var(--mat-sys-on-secondary-container) 18%,
+          var(--mat-sys-secondary-container)
+  );
   background: var(--mat-sys-secondary-container);
   color: var(--mat-sys-on-secondary-container);
 }
@@ -151,7 +155,11 @@
 .review-actions {
   gap: 8px;
   padding-left: 12px;
-  border-left: 1px solid color-mix(in srgb, var(--mat-sys-on-surface) 16%, transparent);
+  border-left: 1px solid color-mix(
+          in srgb,
+          var(--mat-sys-on-surface) 16%,
+          transparent
+  );
 }
 
 .review-bar button {
@@ -178,15 +186,39 @@
   pointer-events: none;
 }
 
+.comparison-status,
+.comparison-toggle {
+  border: 1px solid color-mix(
+          in srgb,
+          var(--mat-sys-outline-variant) 90%,
+          transparent
+  );
+  background: color-mix(
+          in srgb,
+          var(--mat-sys-surface) 97%,
+          transparent
+  );
+  box-shadow: 0 1px 2px
+  color-mix(
+          in srgb,
+          var(--mat-sys-on-surface) 10%,
+          transparent
+  );
+}
+
 .comparison-status {
   display: inline-flex;
   min-width: 0;
+  min-height: 40px;
   align-self: flex-start;
   align-items: center;
   gap: 8px;
-  color: var(--mat-sys-on-surface-variant);
+  padding: 0 14px;
+  border-radius: 999px;
+  color: var(--mat-sys-on-surface);
   font: var(--mat-sys-body-medium);
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .comparison-status mat-icon {
@@ -210,11 +242,12 @@
 }
 
 .comparison-status-dot {
-  width: 14px;
-  height: 14px;
+  width: 10px;
+  height: 10px;
   flex: 0 0 auto;
   border-radius: 50%;
   background: var(--mat-sys-primary);
+  box-shadow: 0 0 0 2px var(--mat-sys-surface);
 }
 
 .comparison-status-moved mat-icon {

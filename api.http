@@ -115,3 +115,454 @@ Content-Type: application/json
     }
   ]
 }
+
+
+### 3. Create a complete 30-slide AI presentation
+###
+### Purpose:
+### - Exercise the API with a larger realistic deck
+### - Use the available slide types according to their intended structure
+### - Focus on written content rather than external imagery
+###
+### Slide types used:
+### - title
+### - section
+### - statement
+### - content
+### - split
+### - metrics
+### - table
+###
+### visual is intentionally omitted for now because it requires an image source.
+PUT {{baseUrl}}/api/deck
+Content-Type: application/json
+
+{
+  "title": "Artificial Intelligence: Foundations, Capabilities and Adoption",
+  "slides": [
+    {
+      "id": "50000000-0000-4000-8000-000000000001",
+      "type": "title",
+      "title": "Artificial Intelligence",
+      "subtitle": "Foundations, capabilities, applications and responsible adoption"
+    },
+    {
+      "id": "50000000-0000-4000-8000-000000000002",
+      "type": "section",
+      "title": "1. Understanding AI XXX",
+      "subtitle": "The concepts behind intelligent software systems"
+    },
+    {
+      "id": "50000000-0000-4000-8000-000000000003",
+      "type": "statement",
+      "statement": "AI turns data, algorithms and computation into systems that can perform tasks traditionally associated with human intelligence.",
+      "supportingText": "Modern AI is less about explicitly programming every rule and more about building systems that learn useful patterns from examples."
+    },
+    {
+      "id": "50000000-0000-4000-8000-000000000004",
+      "type": "content",
+      "title": "What artificial intelligence actually means",
+      "body": "Artificial intelligence is an umbrella term for computer systems designed to perform tasks such as perception, prediction, reasoning, language understanding, content generation and decision support.",
+      "bullets": [
+        "AI describes a broad field rather than one individual technology",
+        "Machine learning is one major approach used to build AI systems",
+        "Deep learning uses multilayer neural networks to learn complex patterns",
+        "Generative AI creates new outputs such as text, images, audio and software code"
+      ]
+    },
+    {
+      "id": "50000000-0000-4000-8000-000000000005",
+      "type": "split",
+      "title": "Traditional software and AI systems",
+      "leftTitle": "Traditional software",
+      "leftItems": [
+        "Developers explicitly define rules and program logic",
+        "The same inputs usually produce predictable outputs",
+        "Behavior changes when developers change the code",
+        "Best suited to well-defined deterministic processes"
+      ],
+      "rightTitle": "AI systems",
+      "rightItems": [
+        "Models learn patterns from examples and feedback",
+        "Outputs can be probabilistic rather than deterministic",
+        "Behavior depends on training data, model design and context",
+        "Best suited to complex pattern-recognition problems"
+      ]
+    },
+    {
+      "id": "50000000-0000-4000-8000-000000000006",
+      "type": "content",
+      "title": "How machines learn",
+      "body": "Machine learning systems improve task performance by identifying patterns in data instead of relying exclusively on hand-written rules.",
+      "bullets": [
+        "Supervised learning learns from examples paired with desired answers",
+        "Unsupervised learning discovers patterns and structure without explicit labels",
+        "Self-supervised learning derives learning signals from the data itself",
+        "Reinforcement learning improves behavior through rewards and feedback",
+        "Many modern systems combine several learning approaches"
+      ]
+    },
+    {
+      "id": "50000000-0000-4000-8000-000000000007",
+      "type": "table",
+      "title": "Major AI model families",
+      "headers": [
+        "Model family",
+        "Primary purpose",
+        "Typical applications"
+      ],
+      "rows": [
+        [
+          "Language models",
+          "Understand and generate sequences of language",
+          "Writing, search, coding, summarization and assistants"
+        ],
+        [
+          "Vision models",
+          "Interpret visual information",
+          "Classification, inspection, detection and document understanding"
+        ],
+        [
+          "Diffusion models",
+          "Generate data through iterative denoising",
+          "Image, video and media generation"
+        ],
+        [
+          "Speech models",
+          "Process spoken language and audio",
+          "Transcription, translation, synthesis and voice interfaces"
+        ],
+        [
+          "Multimodal models",
+          "Work across multiple information types",
+          "Assistants that combine text, images, audio and other inputs"
+        ]
+      ]
+    },
+    {
+      "id": "50000000-0000-4000-8000-000000000008",
+      "type": "section",
+      "title": "2. How Modern AI Works",
+      "subtitle": "From raw data to useful model output"
+    },
+    {
+      "id": "50000000-0000-4000-8000-000000000009",
+      "type": "content",
+      "title": "Data is the foundation",
+      "body": "An AI model learns from the examples and signals available during its development. The quality, diversity and relevance of those inputs strongly influence the system's behavior.",
+      "bullets": [
+        "Training data provides examples from which patterns can be learned",
+        "Data quality problems can become model quality problems",
+        "Coverage matters because models perform poorly on situations absent from their learning process",
+        "Privacy, licensing and provenance need to be considered throughout the data lifecycle"
+      ]
+    },
+    {
+      "id": "50000000-0000-4000-8000-000000000010",
+      "type": "content",
+      "title": "Training converts examples into parameters",
+      "body": "During training, an optimization process repeatedly adjusts model parameters so that the model becomes better at producing desired outputs.",
+      "bullets": [
+        "The model makes a prediction",
+        "A mathematical objective measures how far the prediction is from the desired result",
+        "Optimization adjusts the model to reduce that error",
+        "The cycle is repeated across very large numbers of examples",
+        "The final parameters encode statistical patterns learned during training"
+      ]
+    },
+    {
+      "id": "50000000-0000-4000-8000-000000000011",
+      "type": "split",
+      "title": "Training and inference are different workloads",
+      "leftTitle": "Training",
+      "leftItems": [
+        "Creates or adapts the model",
+        "Processes large collections of examples",
+        "Requires repeated optimization",
+        "Usually consumes substantial computational resources",
+        "Occurs before a model is deployed for regular use"
+      ],
+      "rightTitle": "Inference",
+      "rightItems": [
+        "Uses an already-trained model",
+        "Processes new user or system inputs",
+        "Generates predictions or content",
+        "Needs low enough latency for the application",
+        "Occurs whenever the deployed model is called"
+      ]
+    },
+    {
+      "id": "50000000-0000-4000-8000-000000000012",
+      "type": "content",
+      "title": "Neural networks learn representations",
+      "body": "Deep neural networks transform inputs through multiple layers. Instead of relying on manually designed features, the network learns internal representations that help solve the target task.",
+      "bullets": [
+        "Early layers can capture relatively simple patterns",
+        "Later layers combine those patterns into richer representations",
+        "Parameters determine how information is transformed between layers",
+        "Training discovers parameter values that are useful for the objective"
+      ]
+    },
+    {
+      "id": "50000000-0000-4000-8000-000000000013",
+      "type": "content",
+      "title": "Transformers made large-scale sequence modeling practical",
+      "body": "The transformer architecture uses attention mechanisms to model relationships between pieces of information, making it highly effective for language and increasingly useful across many other data types.",
+      "bullets": [
+        "Attention helps the model focus on relevant parts of its context",
+        "Transformers support highly parallel training",
+        "The architecture scales effectively with larger datasets and models",
+        "Transformer-based systems now power many language and multimodal applications"
+      ]
+    },
+    {
+      "id": "50000000-0000-4000-8000-000000000014",
+      "type": "content",
+      "title": "Foundation models provide reusable intelligence",
+      "body": "A foundation model is trained broadly enough to support many downstream tasks. Instead of creating a completely separate model for every problem, organizations can adapt a general model with instructions, examples, retrieval or additional training.",
+      "bullets": [
+        "One model can support many different applications",
+        "Prompting can change behavior without changing model parameters",
+        "Retrieval can provide relevant external information at runtime",
+        "Fine-tuning can specialize behavior for a narrower task",
+        "Application logic adds workflows, permissions and business rules around the model"
+      ]
+    },
+    {
+      "id": "50000000-0000-4000-8000-000000000015",
+      "type": "metrics",
+      "title": "A simple mental model for an AI application",
+      "metrics": [
+        {
+          "value": "Context",
+          "label": "What the model knows for this request",
+          "context": "Instructions, user input, retrieved information and conversation state"
+        },
+        {
+          "value": "Model",
+          "label": "The engine that interprets and generates",
+          "context": "Transforms the available context into predictions or generated output"
+        },
+        {
+          "value": "Feedback",
+          "label": "How quality improves over time",
+          "context": "Evaluation, user signals and observed failures guide iteration"
+        }
+      ]
+    },
+    {
+      "id": "50000000-0000-4000-8000-000000000016",
+      "type": "section",
+      "title": "3. What AI Can Do",
+      "subtitle": "Capabilities are expanding from prediction to generation and action"
+    },
+    {
+      "id": "50000000-0000-4000-8000-000000000017",
+      "type": "content",
+      "title": "Language intelligence",
+      "body": "Language models can transform, generate and reason over natural-language information, making conversational interfaces possible across a wide range of software.",
+      "bullets": [
+        "Draft, rewrite and summarize documents",
+        "Extract structured information from unstructured text",
+        "Answer questions using supplied context",
+        "Translate and adapt content for different audiences",
+        "Generate and explain software code",
+        "Support search and information discovery"
+      ]
+    },
+    {
+      "id": "50000000-0000-4000-8000-000000000018",
+      "type": "content",
+      "title": "Multimodal intelligence",
+      "body": "Modern systems increasingly combine several forms of information in a single model or application, allowing AI to understand richer real-world contexts.",
+      "bullets": [
+        "Interpret images together with written instructions",
+        "Extract information from charts, screenshots and documents",
+        "Transcribe and analyze spoken conversations",
+        "Generate images, speech and other media",
+        "Connect visual observations with language-based reasoning"
+      ]
+    },
+    {
+      "id": "50000000-0000-4000-8000-000000000019",
+      "type": "content",
+      "title": "Agents combine models with tools and workflows",
+      "body": "An AI agent extends model generation with the ability to choose actions, call tools, inspect results and continue working toward a goal.",
+      "bullets": [
+        "The model interprets the task and current state",
+        "Available tools expose external capabilities",
+        "The agent selects an action and supplies parameters",
+        "Tool results are returned to the model as new context",
+        "The cycle can continue until a completion condition is reached",
+        "Permissions and guardrails determine which actions are allowed"
+      ]
+    },
+    {
+      "id": "50000000-0000-4000-8000-000000000020",
+      "type": "split",
+      "title": "Where AI excels and where it struggles",
+      "leftTitle": "Strong fit",
+      "leftItems": [
+        "Recognizing patterns across large amounts of information",
+        "Generating drafts and alternative ideas quickly",
+        "Transforming content between formats",
+        "Supporting repetitive knowledge work",
+        "Finding likely answers when exact rules are difficult to specify"
+      ],
+      "rightTitle": "Requires caution",
+      "rightItems": [
+        "Tasks requiring guaranteed factual correctness",
+        "Rare situations with little relevant training or context",
+        "Decisions where explanations and accountability are mandatory",
+        "Problems with ambiguous objectives or poor evaluation criteria",
+        "Actions with significant consequences and no human oversight"
+      ]
+    },
+    {
+      "id": "50000000-0000-4000-8000-000000000021",
+      "type": "statement",
+      "statement": "AI output is probabilistic, so impressive generation does not remove the need for evaluation.",
+      "supportingText": "A production system needs clear quality criteria, testing and controls around the model rather than assuming every plausible-looking answer is correct."
+    },
+    {
+      "id": "50000000-0000-4000-8000-000000000022",
+      "type": "section",
+      "title": "4. AI in the Organization",
+      "subtitle": "Turning technical capability into measurable business value"
+    },
+    {
+      "id": "50000000-0000-4000-8000-000000000023",
+      "type": "content",
+      "title": "High-value use cases start with workflow problems",
+      "body": "The strongest AI opportunities are usually identified by examining work that is slow, repetitive, information-heavy or difficult to scale.",
+      "bullets": [
+        "Reduce time spent searching for internal knowledge",
+        "Accelerate document creation and review",
+        "Automate classification and information extraction",
+        "Assist employees with analysis and decision preparation",
+        "Improve customer support through faster response generation",
+        "Help software teams understand, create and maintain code"
+      ]
+    },
+    {
+      "id": "50000000-0000-4000-8000-000000000024",
+      "type": "table",
+      "title": "AI patterns across business functions",
+      "headers": [
+        "Function",
+        "AI pattern",
+        "Potential value"
+      ],
+      "rows": [
+        [
+          "Customer service",
+          "Answer generation and case summarization",
+          "Faster resolution and more consistent responses"
+        ],
+        [
+          "Sales",
+          "Research, drafting and CRM assistance",
+          "More time for customer-facing work"
+        ],
+        [
+          "Operations",
+          "Document processing and workflow automation",
+          "Lower manual effort and shorter cycle times"
+        ],
+        [
+          "Software engineering",
+          "Code generation, review and explanation",
+          "Faster development and easier maintenance"
+        ],
+        [
+          "Knowledge management",
+          "Semantic search and question answering",
+          "Improved access to organizational information"
+        ]
+      ]
+    },
+    {
+      "id": "50000000-0000-4000-8000-000000000025",
+      "type": "content",
+      "title": "Build, buy or adapt",
+      "body": "Most organizations do not need to train a foundation model from scratch. The strategic decision is usually how much of the AI stack should be owned versus obtained from specialized providers.",
+      "bullets": [
+        "Buy when a standard application already solves the workflow well",
+        "Build an application layer when proprietary workflows create differentiation",
+        "Use retrieval when the model needs access to changing internal knowledge",
+        "Fine-tune when repeated prompting cannot achieve the required behavior",
+        "Train custom models only when the economics and strategic advantage justify the investment"
+      ]
+    },
+    {
+      "id": "50000000-0000-4000-8000-000000000026",
+      "type": "metrics",
+      "title": "A practical path from idea to scaled adoption",
+      "metrics": [
+        {
+          "value": "Discover",
+          "label": "Find valuable problems",
+          "context": "Prioritize workflows by business value, feasibility, risk and data readiness"
+        },
+        {
+          "value": "Pilot",
+          "label": "Prove the workflow",
+          "context": "Test real users, establish evaluation criteria and measure outcomes"
+        },
+        {
+          "value": "Scale",
+          "label": "Operationalize the capability",
+          "context": "Add governance, monitoring, integration, ownership and change management"
+        }
+      ]
+    },
+    {
+      "id": "50000000-0000-4000-8000-000000000027",
+      "type": "section",
+      "title": "5. Risk and Responsible AI",
+      "subtitle": "Capability must be paired with governance and operational controls"
+    },
+    {
+      "id": "50000000-0000-4000-8000-000000000028",
+      "type": "content",
+      "title": "Core risks to manage",
+      "body": "AI introduces a combination of familiar software risks and new model-specific risks. Governance should match the consequences of the use case.",
+      "bullets": [
+        "Incorrect or fabricated model outputs",
+        "Bias or uneven performance across different situations",
+        "Exposure of confidential or personal information",
+        "Prompt injection and manipulation of AI-enabled workflows",
+        "Unclear ownership of generated or training content",
+        "Unexpected behavior when systems encounter unfamiliar inputs",
+        "Excessive automation of decisions requiring human accountability"
+      ]
+    },
+    {
+      "id": "50000000-0000-4000-8000-000000000029",
+      "type": "split",
+      "title": "Responsible deployment requires technical and organizational controls",
+      "leftTitle": "Technical safeguards",
+      "leftItems": [
+        "Evaluate models against representative test cases",
+        "Restrict tools, data and actions using least-privilege access",
+        "Validate structured outputs before downstream use",
+        "Monitor failures, latency, cost and unusual behavior",
+        "Use retrieval and grounding when factual accuracy matters"
+      ],
+      "rightTitle": "Organizational controls",
+      "rightItems": [
+        "Assign clear owners for AI-enabled workflows",
+        "Classify use cases according to their risk",
+        "Define when human review is mandatory",
+        "Train employees on appropriate use and limitations",
+        "Maintain processes for incidents, escalation and continuous improvement"
+      ]
+    },
+    {
+      "id": "50000000-0000-4000-8000-000000000030",
+      "type": "statement",
+      "statement": "The goal is not to put AI everywhere. The goal is to apply it where learning, generation and automation create measurable value with acceptable risk.",
+      "supportingText": "Successful AI adoption combines capable models with strong product design, reliable data, rigorous evaluation and responsible operating practices."
+    }
+  ]
+}
