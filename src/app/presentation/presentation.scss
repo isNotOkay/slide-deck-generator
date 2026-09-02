@@ -3,6 +3,48 @@
   height: 100%;
 }
 
+.drop-overlay {
+  position: fixed;
+  z-index: 1200;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--mat-sys-primary) 14%, transparent);
+  pointer-events: none;
+}
+
+.drop-overlay-card {
+  display: grid;
+  gap: 8px;
+  min-width: min(320px, calc(100% - 40px));
+  padding: 28px 32px;
+  border: 1px solid var(--mat-sys-primary);
+  border-radius: 16px;
+  background: var(--mat-sys-surface);
+  box-shadow: var(--mat-sys-level3);
+  color: var(--mat-sys-on-surface);
+  text-align: center;
+}
+
+.drop-overlay-card mat-icon {
+  justify-self: center;
+  width: 32px;
+  height: 32px;
+  color: var(--mat-sys-primary);
+  font-family: "Material Symbols Outlined";
+  font-size: 32px;
+  font-variation-settings: "FILL" 0, "wght" 500, "GRAD" 0, "opsz" 32;
+}
+
+.drop-overlay-card strong {
+  font: var(--mat-sys-title-large);
+}
+
+.drop-overlay-card span {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+}
+
 .presentation-shell {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -72,6 +114,11 @@
   align-items: center;
   gap: 2px;
   margin-left: auto;
+}
+
+.save-spinner {
+  flex: 0 0 auto;
+  color: var(--mat-sys-primary);
 }
 
 .toolbar-controls mat-icon,

@@ -1,3 +1,21 @@
+<input
+  #jsonFileInput
+  type="file"
+  accept=".json,application/json"
+  hidden
+  (change)="onJsonFileSelected($event)"
+/>
+
+@if (fileDragActive()) {
+  <div class="drop-overlay" role="status" aria-live="polite">
+    <mat-card class="drop-overlay-card" appearance="outlined">
+      <mat-icon fontSet="material-symbols-outlined" aria-hidden="true">folder_open</mat-icon>
+      <strong>Drop JSON to open</strong>
+      <span>Presentation JSON only</span>
+    </mat-card>
+  </div>
+}
+
 <div class="presentation-shell">
   <mat-toolbar class="toolbar app-chrome">
     <button
@@ -11,6 +29,15 @@
       <mat-icon fontSet="material-symbols-outlined" aria-hidden="true">menu</mat-icon>
     </button>
     <span class="deck-title">{{ deck()?.title || "Presentation" }}</span>
+
+    @if (saving()) {
+      <mat-progress-spinner
+        class="save-spinner"
+        mode="indeterminate"
+        diameter="18"
+        aria-label="Saving slide order"
+      />
+    }
 
     <nav class="toolbar-controls" aria-label="Presentation controls">
       <button
@@ -50,9 +77,12 @@
           [slides]="loadedDeck.slides"
           [activeIndex]="currentIndex()"
           [exporting]="exporting()"
+          [opening]="opening()"
           (slideSelected)="selectSlide($event)"
           (slidesReordered)="reorderSlides($event)"
-          (exportRequested)="exportDeck()"
+          (pdfRequested)="exportDeck()"
+          (jsonRequested)="downloadDeckJson()"
+          (openRequested)="openJsonFilePicker()"
         />
       } @else {
         <div class="sidebar-placeholder" aria-hidden="true"></div>

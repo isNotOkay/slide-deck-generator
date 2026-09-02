@@ -2,11 +2,6 @@
   "title": "HTTP test presentation",
   "slides": [
     {
-      "type": "title",
-      "title": "HTTP test presentation",
-      "subtitle": "Created through api.http"
-    },
-    {
       "type": "content",
       "title": "Test content",
       "body": "This presentation verifies the JSON-backed API.",
@@ -15,6 +10,11 @@
         "Validated by the API",
         "Persisted as JSON"
       ]
+    },
+    {
+      "type": "title",
+      "title": "HTTP test presentation",
+      "subtitle": "Created through api.http"
     }
   ]
 }

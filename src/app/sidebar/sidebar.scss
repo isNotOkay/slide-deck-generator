@@ -17,16 +17,69 @@ header {
   display: flex;
   min-height: 64px;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
   padding: 10px 14px;
   border-bottom: 1px solid var(--mat-sys-outline-variant);
 }
 
-.export-button {
-  display: inline-flex;
+.header-actions {
+  display: flex;
+  flex: 1 1 auto;
   align-items: center;
-  gap: 7px;
+  gap: 20px;
+  min-width: 0;
+}
+
+.open-button,
+.download-button {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 5px;
+  padding-inline: 10px;
+}
+
+.open-button {
+  flex: 1 1 auto;
+}
+
+.open-button mat-icon {
+  width: 18px;
+  height: 18px;
+  font-family: "Material Symbols Outlined";
+  font-size: 18px;
+  font-variation-settings: "FILL" 0, "wght" 500, "GRAD" 0, "opsz" 20;
+}
+
+.download-button mat-icon {
+  width: 18px;
+  height: 18px;
+  font-family: "Material Symbols Outlined";
+  font-size: 18px;
+  font-variation-settings: "FILL" 0, "wght" 500, "GRAD" 0, "opsz" 20;
+}
+
+.download-menu-item {
+  .menu-copy {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1px;
+    min-width: 120px;
+  }
+
+  .menu-primary {
+    color: var(--mat-sys-on-surface);
+    font: var(--mat-sys-label-large);
+    letter-spacing: var(--mat-sys-label-large-tracking);
+  }
+
+  .menu-secondary {
+    color: var(--mat-sys-on-surface-variant);
+    font: var(--mat-sys-body-small);
+    letter-spacing: var(--mat-sys-body-small-tracking);
+    line-height: 1.2;
+  }
 }
 
 .drag-handle mat-icon {

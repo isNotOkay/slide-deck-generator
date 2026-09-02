@@ -1,15 +1,52 @@
 <aside aria-label="Slide navigation">
   <header>
-    <button
-      matButton="outlined"
-      type="button"
-      class="export-button"
-      [disabled]="slides().length === 0 || exporting()"
-      [attr.aria-busy]="exporting() ? 'true' : null"
-      (click)="exportRequested.emit()"
-    >
-      <span>{{ exporting() ? "Exporting…" : "Export" }}</span>
-    </button>
+    <div class="header-actions">
+      <button
+        matButton
+        type="button"
+        class="open-button"
+        aria-label="Open JSON presentation"
+        [disabled]="opening() || exporting()"
+        (click)="openRequested.emit()"
+      >
+        <mat-icon fontSet="material-symbols-outlined" aria-hidden="true">folder_open</mat-icon>
+        <span>Open</span>
+      </button>
+
+      <button
+        matButton
+        type="button"
+        class="download-button"
+        [matMenuTriggerFor]="downloadMenu"
+        [disabled]="exporting()"
+        [attr.aria-busy]="exporting() ? 'true' : null"
+      >
+        <mat-icon fontSet="material-symbols-outlined" aria-hidden="true">download</mat-icon>
+        <span>{{ exporting() ? "Exporting…" : "Download" }}</span>
+      </button>
+    </div>
+
+    <mat-menu #downloadMenu="matMenu" class="download-menu" aria-label="Download options">
+      <button
+        mat-menu-item
+        class="download-menu-item"
+        [disabled]="slides().length === 0 || exporting()"
+        (click)="pdfRequested.emit()"
+      >
+        <mat-icon fontSet="material-symbols-outlined" aria-hidden="true">picture_as_pdf</mat-icon>
+        <span class="menu-copy">
+          <span class="menu-primary">PDF</span>
+          <span class="menu-secondary">All slides</span>
+        </span>
+      </button>
+      <button mat-menu-item class="download-menu-item" (click)="jsonRequested.emit()">
+        <mat-icon fontSet="material-symbols-outlined" aria-hidden="true">data_object</mat-icon>
+        <span class="menu-copy">
+          <span class="menu-primary">JSON</span>
+          <span class="menu-secondary">Source data</span>
+        </span>
+      </button>
+    </mat-menu>
   </header>
 
   <ol

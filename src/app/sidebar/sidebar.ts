@@ -2,6 +2,7 @@ import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDragPlaceholder, CdkDropList } 
 import { CdkScrollable } from "@angular/cdk/scrolling";
 import { MatButton } from "@angular/material/button";
 import { MatIcon } from "@angular/material/icon";
+import { MatMenu, MatMenuItem, MatMenuTrigger } from "@angular/material/menu";
 import { ChangeDetectionStrategy, Component, ElementRef, effect, input, output, viewChildren } from "@angular/core";
 
 import type { Slide as SlideModel } from "../../slides";
@@ -11,7 +12,19 @@ export type SlideReorder = Pick<CdkDragDrop<readonly SlideModel[]>, "previousInd
 
 @Component({
   selector: "app-sidebar",
-  imports: [CdkDropList, CdkDrag, CdkDragHandle, CdkDragPlaceholder, CdkScrollable, MatButton, MatIcon, Slide],
+  imports: [
+    CdkDropList,
+    CdkDrag,
+    CdkDragHandle,
+    CdkDragPlaceholder,
+    CdkScrollable,
+    MatButton,
+    MatIcon,
+    MatMenu,
+    MatMenuItem,
+    MatMenuTrigger,
+    Slide
+  ],
   templateUrl: "./sidebar.html",
   styleUrl: "./sidebar.scss",
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -23,7 +36,10 @@ export class Sidebar {
 
   readonly slideSelected = output<number>();
   readonly slidesReordered = output<SlideReorder>();
-  readonly exportRequested = output<void>();
+  readonly pdfRequested = output<void>();
+  readonly jsonRequested = output<void>();
+  readonly openRequested = output<void>();
+  readonly opening = input(false);
 
   private readonly thumbnailButtons = viewChildren<ElementRef<HTMLButtonElement>>("thumbnail");
 

@@ -14,7 +14,7 @@ import { Title } from "@angular/platform-browser";
 import { Router } from "@angular/router";
 import { firstValueFrom } from "rxjs";
 
-import type { Deck } from "../../slides";
+import { DeckValidationError, parseDeck, type Deck } from "../../slides";
 import { DeckRepository } from "../deck.repository";
 import { PdfExportService } from "../pdf-export.service";
 import { Sidebar, type SlideReorder } from "../sidebar/sidebar";
@@ -40,7 +40,13 @@ import { Slide } from "../slide/slide";
   templateUrl: "./presentation.html",
   styleUrl: "./presentation.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { "(document:keydown)": "handleKeydown($event)" }
+  host: {
+    "(document:keydown)": "handleKeydown($event)",
+    "(document:dragenter)": "handleDragEnter($event)",
+    "(document:dragover)": "handleDragOver($event)",
+    "(document:dragleave)": "handleDragLeave($event)",
+    "(document:drop)": "handleDrop($event)"
+  }
 })
 export class Presentation {
   readonly slideNumber = input.required<string>();
@@ -53,13 +59,19 @@ export class Presentation {
   private readonly breakpointObserver = inject(BreakpointObserver);
   private readonly drawer = viewChild<MatSidenav>("drawer");
   private readonly exportStage = viewChild<ElementRef<HTMLElement>>("exportStage");
+  private readonly jsonFileInput = viewChild<ElementRef<HTMLInputElement>>("jsonFileInput");
 
   protected readonly deck = signal<Deck | null>(null);
   protected readonly loading = signal(true);
   protected readonly loadError = signal<string | null>(null);
+  protected readonly saving = signal(false);
+  protected readonly opening = signal(false);
   protected readonly exporting = signal(false);
   protected readonly isMobile = signal(false);
   protected readonly drawerOpened = signal(false);
+  protected readonly fileDragActive = signal(false);
+
+  private fileDragDepth = 0;
 
   protected readonly slideCount = computed(() => this.deck()?.slides.length ?? 0);
   protected readonly currentIndex = computed(() =>
@@ -143,6 +155,7 @@ export class Presentation {
     const optimisticDeck = { ...previousDeck, slides: reorderedSlides };
     const selectedIndex = selectedSlide ? reorderedSlides.indexOf(selectedSlide) : 0;
     this.deck.set(optimisticDeck);
+    this.saving.set(true);
 
     try {
       await this.navigateTo(selectedIndex, true);
@@ -152,6 +165,8 @@ export class Presentation {
       await this.navigateTo(previousIndex, true);
       const message = error instanceof Error ? error.message : "The slide order could not be saved.";
       this.showError(`Slide order was restored. ${message}`);
+    } finally {
+      this.saving.set(false);
     }
   }
 
@@ -173,6 +188,70 @@ export class Presentation {
     } finally {
       this.exporting.set(false);
     }
+  }
+
+  protected downloadDeckJson(): void {
+    const deck = this.deck();
+    if (!deck) return;
+
+    const blob = new Blob([`${JSON.stringify(deck, null, 2)}\n`], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `${this.fileName(deck.title)}.json`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }
+
+  protected openJsonFilePicker(): void {
+    if (!this.opening()) {
+      this.jsonFileInput()?.nativeElement.click();
+    }
+  }
+
+  protected onJsonFileSelected(event: Event): void {
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement)) return;
+
+    const files = input.files ? Array.from(input.files) : null;
+    input.value = "";
+    void this.handleJsonFile(files);
+  }
+
+  protected handleDragEnter(event: DragEvent): void {
+    if (!this.isExternalFileDrag(event)) return;
+
+    event.preventDefault();
+    this.fileDragDepth += 1;
+    this.fileDragActive.set(true);
+  }
+
+  protected handleDragOver(event: DragEvent): void {
+    if (!this.isExternalFileDrag(event)) return;
+
+    event.preventDefault();
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = "copy";
+    }
+    this.fileDragActive.set(true);
+  }
+
+  protected handleDragLeave(event: DragEvent): void {
+    if (!this.isExternalFileDrag(event) && !this.fileDragActive()) return;
+
+    this.fileDragDepth = Math.max(0, this.fileDragDepth - 1);
+    if (this.fileDragDepth === 0) {
+      this.fileDragActive.set(false);
+    }
+  }
+
+  protected handleDrop(event: DragEvent): void {
+    if (!this.isExternalFileDrag(event) && !this.fileDragActive()) return;
+
+    event.preventDefault();
+    this.resetFileDragState();
+    const files = event.dataTransfer ? Array.from(event.dataTransfer.files) : null;
+    void this.handleJsonFile(files);
   }
 
   protected handleKeydown(event: KeyboardEvent): void {
@@ -202,6 +281,68 @@ export class Presentation {
   private isEditable(target: EventTarget | null): boolean {
     if (!(target instanceof HTMLElement)) return false;
     return target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName);
+  }
+
+  private async handleJsonFile(files: readonly File[] | null): Promise<void> {
+    if (this.opening()) return;
+
+    if (!files || files.length !== 1) {
+      this.showError("Open exactly one JSON presentation file.");
+      return;
+    }
+
+    this.opening.set(true);
+
+    try {
+      const parsedJson: unknown = JSON.parse(await files[0].text());
+      const importedDeck = parseDeck(parsedJson);
+      const savedDeck = await firstValueFrom(this.repository.save(importedDeck));
+
+      this.deck.set(savedDeck);
+      this.loadError.set(null);
+      await this.navigateTo(0, true);
+      this.snackBar.dismiss();
+    } catch (error) {
+      this.showError(`Unable to open presentation. ${this.describeOpenError(error)}`);
+    } finally {
+      this.opening.set(false);
+    }
+  }
+
+  private isExternalFileDrag(event: DragEvent): boolean {
+    const types = event.dataTransfer?.types;
+    return types ? Array.from(types).includes("Files") : false;
+  }
+
+  private resetFileDragState(): void {
+    this.fileDragDepth = 0;
+    this.fileDragActive.set(false);
+  }
+
+  private describeOpenError(error: unknown): string {
+    if (error instanceof SyntaxError) {
+      return "The file contains invalid JSON.";
+    }
+
+    if (error instanceof DeckValidationError) {
+      return `The deck structure is invalid. ${error.message}`;
+    }
+
+    if (error instanceof Error) {
+      return error.message;
+    }
+
+    return "The file could not be opened.";
+  }
+
+  private fileName(title: string): string {
+    const safeTitle = title
+      .replace(/[\\/:*?"<>|\u0000-\u001f]/g, "-")
+      .replace(/\s+/g, " ")
+      .trim()
+      .replace(/[. ]+$/g, "");
+
+    return safeTitle || "presentation";
   }
 
   private showError(message: string): void {

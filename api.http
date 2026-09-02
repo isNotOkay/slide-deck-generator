@@ -22,7 +22,7 @@ Content-Type: application/json
       "bullets": [
         "Created with PUT",
         "Validated by the API",
-        "Persisted as JSON"
+        "Persisted as JSON XXX"
       ]
     }
   ]
