@@ -49,13 +49,33 @@ li {
 
   &:hover,
   &:focus-within {
-    border-color: var(--mat-sys-primary);
-    box-shadow: 0 0 0 3px var(--mat-sys-primary-container);
+    border-color: color-mix(
+            in srgb,
+            var(--mat-sys-primary) 60%,
+            var(--mat-sys-outline-variant)
+    );
+
+    box-shadow:
+            0 0 0 2px
+            color-mix(in srgb, var(--mat-sys-primary) 10%, transparent);
   }
 
   &.is-active {
-    border-color: var(--mat-sys-primary);
-    box-shadow: 0 0 0 2px var(--mat-sys-primary-container);
+    border-color: color-mix(
+            in srgb,
+            var(--mat-sys-primary) 80%,
+            var(--mat-sys-outline-variant)
+    );
+
+    background: color-mix(
+            in srgb,
+            var(--mat-sys-primary-container) 18%,
+            var(--mat-sys-surface-container-lowest)
+    );
+
+    box-shadow:
+            0 0 0 1px
+            color-mix(in srgb, var(--mat-sys-primary) 14%, transparent);
   }
 }
 
