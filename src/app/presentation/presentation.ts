@@ -262,10 +262,10 @@ export class Presentation {
       return;
     }
 
-    if (event.key === "ArrowLeft" && this.canGoPrevious()) {
+    if (["ArrowLeft", "ArrowUp"].includes(event.key) && this.canGoPrevious()) {
       event.preventDefault();
       void this.navigateTo(this.currentIndex() - 1);
-    } else if (event.key === "ArrowRight" && this.canGoNext()) {
+    } else if (["ArrowRight", "ArrowDown"].includes(event.key) && this.canGoNext()) {
       event.preventDefault();
       void this.navigateTo(this.currentIndex() + 1);
     }
