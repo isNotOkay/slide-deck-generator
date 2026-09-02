@@ -1,0 +1,12 @@
+services:
+  slide-deck:
+    build: .
+    image: slide-deck-generator
+    ports:
+      - "${SLIDE_DECK_PORT:-3001}:3001"
+    volumes:
+      - deck-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  deck-data:

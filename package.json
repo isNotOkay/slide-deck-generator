@@ -8,7 +8,8 @@
     "ng": "ng",
     "dev": "concurrently --kill-others-on-fail \"ng serve --proxy-config proxy.conf.json\" \"npm run api\"",
     "api": "tsx server/index.ts",
-    "build": "ng build",
+    "build": "ng build && npm run build:api",
+    "build:api": "tsc -p tsconfig.server.build.json",
     "check": "ngc -p tsconfig.app.json --noEmit && tsc -p tsconfig.server.json --noEmit",
     "test": "tsx --test server/*.test.ts",
     "preview": "ng serve --configuration production --proxy-config proxy.conf.json"

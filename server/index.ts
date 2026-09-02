@@ -1,8 +1,8 @@
 // file: server/index.ts
 import { randomUUID } from "node:crypto";
-import { mkdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rename, stat, unlink, writeFile } from "node:fs/promises";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
-import { dirname, join, resolve } from "node:path";
+import { dirname, extname, join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { DeckValidationError, parseDeck, type Deck } from "../src/slides.ts";
@@ -11,7 +11,25 @@ const port = Number(process.env["PORT"] ?? 3001);
 const defaultDeckFile = resolve(
     fileURLToPath(new URL("../data/deck.json", import.meta.url))
 );
+const defaultStaticDirectory = process.env["STATIC_DIR"]
+    ? resolve(process.env["STATIC_DIR"])
+    : undefined;
+const host = process.env["HOST"] ?? "127.0.0.1";
 const maxBodyBytes = 1_000_000;
+
+const contentTypes: Record<string, string> = {
+    ".css": "text/css; charset=utf-8",
+    ".html": "text/html; charset=utf-8",
+    ".ico": "image/x-icon",
+    ".js": "text/javascript; charset=utf-8",
+    ".json": "application/json; charset=utf-8",
+    ".map": "application/json; charset=utf-8",
+    ".png": "image/png",
+    ".svg": "image/svg+xml",
+    ".webp": "image/webp",
+    ".woff": "font/woff",
+    ".woff2": "font/woff2"
+};
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -97,6 +115,107 @@ function sendJson(
     });
 
     response.end(JSON.stringify(body));
+}
+
+function staticFilePath(
+    staticDirectory: string,
+    pathname: string
+): string {
+    const filePath = resolve(staticDirectory, `.${pathname}`);
+
+    if (
+        filePath !== staticDirectory &&
+        !filePath.startsWith(`${staticDirectory}${sep}`)
+    ) {
+        throw new ApiError(400, "Invalid static file path");
+    }
+
+    return filePath;
+}
+
+async function sendStaticFile(
+    response: ServerResponse,
+    filePath: string,
+    cacheControl: string
+): Promise<void> {
+    const contents = await readFile(filePath);
+    const extension = extname(filePath).toLowerCase();
+
+    response.writeHead(200, {
+        "Cache-Control": cacheControl,
+        "Content-Length": contents.byteLength,
+        "Content-Type": contentTypes[extension] ?? "application/octet-stream"
+    });
+
+    if (response.req?.method !== "HEAD") {
+        response.end(contents);
+        return;
+    }
+
+    response.end();
+}
+
+async function serveStatic(
+    request: IncomingMessage,
+    response: ServerResponse,
+    staticDirectory: string
+): Promise<boolean> {
+    if (request.method !== "GET" && request.method !== "HEAD") {
+        return false;
+    }
+
+    const requestUrl = new URL(request.url ?? "/", "http://localhost");
+    let pathname: string;
+
+    try {
+        pathname = decodeURIComponent(requestUrl.pathname);
+    } catch {
+        throw new ApiError(400, "Invalid URL path");
+    }
+
+    const requestedFile = staticFilePath(staticDirectory, pathname);
+
+    try {
+        const fileStats = await stat(requestedFile);
+
+        if (fileStats.isFile()) {
+            await sendStaticFile(
+                response,
+                requestedFile,
+                pathname === "/index.html"
+                    ? "no-store"
+                    : "public, max-age=31536000, immutable"
+            );
+            return true;
+        }
+    } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+            throw error;
+        }
+    }
+
+    if (extname(pathname) !== "") {
+        return false;
+    }
+
+    const indexFile = join(staticDirectory, "index.html");
+
+    try {
+        const indexStats = await stat(indexFile);
+
+        if (!indexStats.isFile()) {
+            return false;
+        }
+    } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+            return false;
+        }
+
+        throw error;
+    }
+
+    await sendStaticFile(response, indexFile, "no-store");
+    return true;
 }
 
 async function readRequestBody(request: IncomingMessage): Promise<unknown> {
@@ -399,7 +518,8 @@ function applyPatch(deck: Deck, operations: readonly PatchOperation[]): Deck {
 async function handleRequest(
     request: IncomingMessage,
     response: ServerResponse,
-    deckFile: string
+    deckFile: string,
+    staticDirectory?: string
 ): Promise<void> {
     if (request.method === "OPTIONS") {
         response.writeHead(204, {
@@ -413,6 +533,11 @@ async function handleRequest(
     }
 
     const requestUrl = new URL(request.url ?? "/", "http://localhost");
+
+    if (requestUrl.pathname === "/healthz" && request.method === "GET") {
+        sendJson(response, 200, { status: "ok" });
+        return;
+    }
 
     if (requestUrl.pathname === "/api/deck") {
         if (request.method === "GET") {
@@ -466,12 +591,22 @@ async function handleRequest(
         return;
     }
 
+    if (
+        staticDirectory &&
+        await serveStatic(request, response, staticDirectory)
+    ) {
+        return;
+    }
+
     sendJson(response, 404, { error: "Not found" });
 }
 
-export function createApiServer(deckFile = defaultDeckFile) {
+export function createApiServer(
+    deckFile = defaultDeckFile,
+    staticDirectory = defaultStaticDirectory
+) {
     return createServer((request, response) => {
-        handleRequest(request, response, deckFile).catch(error => {
+        handleRequest(request, response, deckFile, staticDirectory).catch(error => {
             if (error instanceof ApiError) {
                 sendJson(response, error.statusCode, { error: error.message });
                 return;
@@ -489,7 +624,7 @@ export function createApiServer(deckFile = defaultDeckFile) {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-    createApiServer().listen(port, "127.0.0.1", () => {
-        console.log(`Deck API listening on http://127.0.0.1:${port}`);
+    createApiServer().listen(port, host, () => {
+        console.log(`Slide Deck listening on http://${host}:${port}`);
     });
 }

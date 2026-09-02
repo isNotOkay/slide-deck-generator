@@ -34,6 +34,26 @@ npm run build    # Create a production build
 npm run preview  # Preview the production build locally
 ```
 
+## Docker deployment
+
+Build and run the production image:
+
+```bash
+docker build -t slide-deck-generator .
+docker run --rm -p 3001:3001 \
+  -v slide-deck-data:/app/data \
+  slide-deck-generator
+```
+
+Or use Compose:
+
+```bash
+docker compose up --build
+```
+
+Open `http://127.0.0.1:3001`. The named Docker volume preserves changes made through the API; the initial
+`data/deck.json` is copied into an empty volume on first startup. Set `SLIDE_DECK_PORT` to change the host port.
+
 ## Project structure
 
 - `src/slides.ts` defines the typed deck and slide models and validates API data.

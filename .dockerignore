@@ -1,0 +1,7 @@
+.angular/
+.git/
+.idea/
+.playwright-mcp/
+dist/
+node_modules/
+npm-debug.log*
