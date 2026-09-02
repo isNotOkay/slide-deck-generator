@@ -1,14 +1,14 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { randomUUID } from "node:crypto";
-import { mkdir, readFile, readdir, rename, unlink, writeFile } from "node:fs/promises";
-import { join, resolve } from "node:path";
+import { mkdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { DeckValidationError, parseDeck, type Deck } from "../src/slides.ts";
 
-const port = Number(process.env.PORT ?? 3001);
-const defaultDeckDirectory = resolve(
-    fileURLToPath(new URL("../data/decks", import.meta.url))
+const port = Number(process.env["PORT"] ?? 3001);
+const defaultDeckFile = resolve(
+    fileURLToPath(new URL("../data/deck.json", import.meta.url))
 );
 const maxBodyBytes = 1_000_000;
 
@@ -36,14 +36,6 @@ function sendJson(
     response.end(JSON.stringify(body));
 }
 
-function deckFile(deckDirectory: string, id: string): string {
-    if (!/^[a-zA-Z0-9][a-zA-Z0-9_-]*$/.test(id)) {
-        throw new ApiError(400, "Deck ID may contain only letters, numbers, hyphens, and underscores");
-    }
-
-    return join(deckDirectory, `${id}.json`);
-}
-
 async function readRequestBody(request: IncomingMessage): Promise<unknown> {
     const chunks: Buffer[] = [];
     let totalBytes = 0;
@@ -66,11 +58,9 @@ async function readRequestBody(request: IncomingMessage): Promise<unknown> {
     }
 }
 
-async function loadDeck(deckDirectory: string, id: string): Promise<Deck> {
-    const filePath = deckFile(deckDirectory, id);
-
+async function loadDeck(deckFile: string): Promise<Deck> {
     try {
-        const contents = await readFile(filePath, "utf8");
+        const contents = await readFile(deckFile, "utf8");
         return parseDeck(JSON.parse(contents));
     } catch (error) {
         if (error instanceof ApiError) {
@@ -78,49 +68,33 @@ async function loadDeck(deckDirectory: string, id: string): Promise<Deck> {
         }
 
         if (error instanceof DeckValidationError) {
-            throw new ApiError(500, `Stored deck '${id}' is invalid: ${error.message}`);
+            throw new ApiError(500, `Stored deck is invalid: ${error.message}`);
         }
 
         if ((error as NodeJS.ErrnoException).code === "ENOENT") {
-            throw new ApiError(404, `Deck '${id}' was not found`);
+            throw new ApiError(404, "Deck was not found");
         }
 
         if (error instanceof SyntaxError) {
-            throw new ApiError(500, `Stored deck '${id}' contains invalid JSON`);
+            throw new ApiError(500, "Stored deck contains invalid JSON");
         }
 
         throw error;
     }
 }
 
-async function listDecks(deckDirectory: string): Promise<Array<{ id: string; title: string }>> {
-    await mkdir(deckDirectory, { recursive: true });
-    const entries = await readdir(deckDirectory, { withFileTypes: true });
-    const deckEntries = entries.filter(
-        entry => entry.isFile() && entry.name.endsWith(".json")
-    );
-
-    return Promise.all(
-        deckEntries.map(async entry => {
-            const id = entry.name.slice(0, -5);
-            const deck = await loadDeck(deckDirectory, id);
-            return { id, title: deck.title };
-        })
-    );
-}
-
-async function saveDeck(deckDirectory: string, id: string, deck: Deck): Promise<void> {
+async function saveDeck(deckFile: string, deck: Deck): Promise<void> {
+    const deckDirectory = dirname(deckFile);
     await mkdir(deckDirectory, { recursive: true });
 
-    const filePath = deckFile(deckDirectory, id);
-    const temporaryPath = join(deckDirectory, `.${id}.${randomUUID()}.tmp`);
+    const temporaryPath = join(deckDirectory, `.deck.${randomUUID()}.tmp`);
 
     try {
         await writeFile(temporaryPath, `${JSON.stringify(deck, null, 2)}\n`, {
             encoding: "utf8",
             flag: "wx"
         });
-        await rename(temporaryPath, filePath);
+        await rename(temporaryPath, deckFile);
     } catch (error) {
         await unlink(temporaryPath).catch(() => undefined);
         throw error;
@@ -130,7 +104,7 @@ async function saveDeck(deckDirectory: string, id: string, deck: Deck): Promise<
 async function handleRequest(
     request: IncomingMessage,
     response: ServerResponse,
-    deckDirectory: string
+    deckFile: string
 ): Promise<void> {
     if (request.method === "OPTIONS") {
         response.writeHead(204, {
@@ -143,39 +117,19 @@ async function handleRequest(
     }
 
     const requestUrl = new URL(request.url ?? "/", "http://localhost");
-    const segments = requestUrl.pathname.split("/").filter(Boolean);
-
-    if (segments[0] !== "api" || segments[1] !== "decks") {
+    if (requestUrl.pathname !== "/api/deck") {
         sendJson(response, 404, { error: "Not found" });
         return;
-    }
-
-    if (segments.length === 2 && request.method === "GET") {
-        sendJson(response, 200, await listDecks(deckDirectory));
-        return;
-    }
-
-    if (segments.length !== 3) {
-        sendJson(response, 404, { error: "Not found" });
-        return;
-    }
-
-    let id: string;
-
-    try {
-        id = decodeURIComponent(segments[2]);
-    } catch {
-        throw new ApiError(400, "Deck ID is not valid URL encoding");
     }
 
     if (request.method === "GET") {
-        sendJson(response, 200, await loadDeck(deckDirectory, id));
+        sendJson(response, 200, await loadDeck(deckFile));
         return;
     }
 
     if (request.method === "PUT") {
         const deck = parseDeck(await readRequestBody(request));
-        await saveDeck(deckDirectory, id, deck);
+        await saveDeck(deckFile, deck);
         sendJson(response, 200, deck);
         return;
     }
@@ -183,9 +137,9 @@ async function handleRequest(
     sendJson(response, 405, { error: "Method not allowed" });
 }
 
-export function createApiServer(deckDirectory = defaultDeckDirectory) {
+export function createApiServer(deckFile = defaultDeckFile) {
     return createServer((request, response) => {
-        handleRequest(request, response, deckDirectory).catch(error => {
+        handleRequest(request, response, deckFile).catch(error => {
             if (error instanceof ApiError) {
                 sendJson(response, error.statusCode, { error: error.message });
                 return;

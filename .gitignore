@@ -1,3 +1,14 @@
-node_modules
-.idea
-dist
+# Angular build and cache output
+/.angular/
+/dist/
+/out-tsc/
+
+# Dependencies and local tooling
+/node_modules/
+/.playwright-mcp/
+npm-debug.log*
+
+# Editor and operating-system files
+.DS_Store
+.idea/
+*.swp

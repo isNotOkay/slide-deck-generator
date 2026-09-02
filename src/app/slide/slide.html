@@ -1,0 +1,78 @@
+@let current = slide();
+
+<section class="slide" [class]="'slide slide-' + current.type">
+  @switch (current.type) {
+    @case ("title") {
+      <h1>{{ current.title }}</h1>
+      @if (current.subtitle) { <p>{{ current.subtitle }}</p> }
+    }
+    @case ("section") {
+      <h1>{{ current.title }}</h1>
+      @if (current.subtitle) { <p>{{ current.subtitle }}</p> }
+    }
+    @case ("statement") {
+      <h1>{{ current.statement }}</h1>
+      @if (current.supportingText) { <p>{{ current.supportingText }}</p> }
+    }
+    @case ("content") {
+      <h2>{{ current.title }}</h2>
+      @if (current.body) { <div class="content-body">{{ current.body }}</div> }
+      @if (current.bullets) {
+        <ul>
+          @for (item of current.bullets; track $index) { <li>{{ item }}</li> }
+        </ul>
+      }
+    }
+    @case ("split") {
+      <h2>{{ current.title }}</h2>
+      <div class="split-grid">
+        <div class="split-column">
+          @if (current.leftTitle) { <h3>{{ current.leftTitle }}</h3> }
+          <ul>
+            @for (item of current.leftItems; track $index) { <li>{{ item }}</li> }
+          </ul>
+        </div>
+        <div class="split-column">
+          @if (current.rightTitle) { <h3>{{ current.rightTitle }}</h3> }
+          <ul>
+            @for (item of current.rightItems; track $index) { <li>{{ item }}</li> }
+          </ul>
+        </div>
+      </div>
+    }
+    @case ("metrics") {
+      <h2>{{ current.title }}</h2>
+      <div class="metrics-grid">
+        @for (metric of current.metrics; track $index) {
+          <div class="metric">
+            <div class="metric-value">{{ metric.value }}</div>
+            <div class="metric-label">{{ metric.label }}</div>
+            @if (metric.context) { <div class="metric-context">{{ metric.context }}</div> }
+          </div>
+        }
+      </div>
+    }
+    @case ("visual") {
+      <h2>{{ current.title }}</h2>
+      <div class="visual-container"><img [src]="current.image" alt=""></div>
+      @if (current.caption) { <p class="caption">{{ current.caption }}</p> }
+    }
+    @case ("table") {
+      <h2>{{ current.title }}</h2>
+      <table>
+        <thead>
+          <tr>
+            @for (header of current.headers; track $index) { <th scope="col">{{ header }}</th> }
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of current.rows; track $index) {
+            <tr>
+              @for (cell of row; track $index) { <td>{{ cell }}</td> }
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  }
+</section>

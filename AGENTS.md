@@ -2,11 +2,11 @@
 
 ## Project overview
 
-This is a Vite + TypeScript application that uses Reveal.js to display slide decks in the browser.
+This is an Angular standalone application that displays one JSON-backed slide deck in the browser.
 
 - Define deck and slide data using the types in `src/slides.ts`.
-- Keep rendering behavior in `src/deck.ts`.
-- Use API-managed JSON files in `data/decks/` for deck content and `theme.css` for presentation styling.
+- Keep presentation rendering in the standalone components under `src/app/`.
+- Use the API-managed `data/deck.json` file for deck content and component SCSS for presentation styling.
 - Preserve HTML escaping when rendering user-provided slide content.
 
 ## Development

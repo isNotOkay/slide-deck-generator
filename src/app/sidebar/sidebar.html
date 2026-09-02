@@ -1,0 +1,51 @@
+<aside aria-label="Slide navigation">
+  <header>
+    <span class="count">{{ slides().length }} {{ slides().length === 1 ? "slide" : "slides" }}</span>
+    @if (saving()) {
+      <span class="save-status">Saving…</span>
+    } @else if (saveError(); as message) {
+      <span class="save-status is-error" [title]="message">Not saved</span>
+    }
+  </header>
+
+  <ol
+    cdkScrollable
+    cdkDropList
+    cdkDropListOrientation="vertical"
+    [cdkDropListData]="slides()"
+    [cdkDropListDisabled]="saving()"
+    (cdkDropListDropped)="dropped($event)"
+  >
+    @for (slide of slides(); track slide; let index = $index) {
+      <li cdkDrag [cdkDragData]="slide" [cdkDragDisabled]="saving()">
+        <div class="thumbnail-row" [class.is-active]="activeIndex() === index">
+          <button
+            #thumbnail
+            type="button"
+            class="thumbnail-button"
+            [attr.aria-label]="'Go to slide ' + (index + 1) + ': ' + slideTitle(slide)"
+            [attr.aria-current]="activeIndex() === index ? 'slide' : null"
+            (click)="slideSelected.emit(index)"
+          >
+            <span class="preview" aria-hidden="true"><app-slide [slide]="slide" /></span>
+            <span class="caption">
+              <span class="number">{{ index + 1 }}</span>
+              <span class="title">{{ slideTitle(slide) }}</span>
+            </span>
+          </button>
+          <button
+            type="button"
+            cdkDragHandle
+            class="drag-handle"
+            [disabled]="saving()"
+            [attr.aria-label]="'Reorder slide ' + (index + 1)"
+            title="Drag to reorder"
+          >
+            <span aria-hidden="true">⠿</span>
+          </button>
+        </div>
+        <div class="drag-placeholder" *cdkDragPlaceholder></div>
+      </li>
+    }
+  </ol>
+</aside>

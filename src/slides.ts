@@ -137,11 +137,11 @@ function parseMetric(value: unknown, index: number): Metric {
 function parseSlide(value: unknown, index: number): Slide {
     const path = `slides[${index}]`;
 
-    if (!isRecord(value) || typeof value.type !== "string") {
+    if (!isRecord(value) || typeof value["type"] !== "string") {
         throw new DeckValidationError(`${path}.type must be a string`);
     }
 
-    switch (value.type) {
+    switch (value["type"]) {
         case "title":
             return {
                 type: "title",
@@ -168,9 +168,9 @@ function parseSlide(value: unknown, index: number): Slide {
                 type: "content",
                 title: requiredString(value, "title", path),
                 body: optionalString(value, "body", path),
-                bullets: value.bullets === undefined
+                bullets: value["bullets"] === undefined
                     ? undefined
-                    : stringArray(value.bullets, `${path}.bullets`)
+                    : stringArray(value["bullets"], `${path}.bullets`)
             };
 
         case "split":
@@ -178,20 +178,20 @@ function parseSlide(value: unknown, index: number): Slide {
                 type: "split",
                 title: requiredString(value, "title", path),
                 leftTitle: optionalString(value, "leftTitle", path),
-                leftItems: stringArray(value.leftItems, `${path}.leftItems`),
+                leftItems: stringArray(value["leftItems"], `${path}.leftItems`),
                 rightTitle: optionalString(value, "rightTitle", path),
-                rightItems: stringArray(value.rightItems, `${path}.rightItems`)
+                rightItems: stringArray(value["rightItems"], `${path}.rightItems`)
             };
 
         case "metrics":
-            if (!Array.isArray(value.metrics)) {
+            if (!Array.isArray(value["metrics"])) {
                 throw new DeckValidationError(`${path}.metrics must be an array`);
             }
 
             return {
                 type: "metrics",
                 title: requiredString(value, "title", path),
-                metrics: value.metrics.map(parseMetric)
+                metrics: value["metrics"].map(parseMetric)
             };
 
         case "visual":
@@ -203,15 +203,15 @@ function parseSlide(value: unknown, index: number): Slide {
             };
 
         case "table":
-            if (!Array.isArray(value.rows)) {
+            if (!Array.isArray(value["rows"])) {
                 throw new DeckValidationError(`${path}.rows must be an array`);
             }
 
             return {
                 type: "table",
                 title: requiredString(value, "title", path),
-                headers: stringArray(value.headers, `${path}.headers`),
-                rows: value.rows.map((row, rowIndex) =>
+                headers: stringArray(value["headers"], `${path}.headers`),
+                rows: value["rows"].map((row, rowIndex) =>
                     stringArray(row, `${path}.rows[${rowIndex}]`)
                 )
             };
@@ -226,12 +226,12 @@ export function parseDeck(value: unknown): Deck {
         throw new DeckValidationError("Deck must be an object");
     }
 
-    if (!Array.isArray(value.slides)) {
+    if (!Array.isArray(value["slides"])) {
         throw new DeckValidationError("Deck.slides must be an array");
     }
 
     return {
         title: requiredString(value, "title", "Deck"),
-        slides: value.slides.map(parseSlide)
+        slides: value["slides"].map(parseSlide)
     };
 }

@@ -1,18 +1,26 @@
 {
-    "compilerOptions": {
-        "target": "ESNext",
-
-        "module": "ESNext",
-        "moduleResolution": "Bundler",
-
-        "strict": true,
-        "noEmit": true,
-
-        "erasableSyntaxOnly": true,
-        "verbatimModuleSyntax": true,
-        "allowImportingTsExtensions": true,
-
-        "types": ["vite/client", "node"]
-    },
-    "include": ["src/**/*.ts", "server/**/*.ts"]
+  "compileOnSave": false,
+  "compilerOptions": {
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "ES2022",
+    "module": "preserve"
+  },
+  "angularCompilerOptions": {
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "strictTemplates": true
+  },
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.server.json" }
+  ]
 }

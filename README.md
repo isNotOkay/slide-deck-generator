@@ -1,6 +1,6 @@
 # Slide Deck Generator
 
-A small TypeScript and Reveal.js project for displaying browser-based slide decks from validated runtime data.
+An Angular application for presenting a validated, JSON-backed slide deck in the browser.
 
 ## Getting started
 
@@ -16,14 +16,12 @@ Start the development server:
 npm run dev
 ```
 
-This starts both the Vite frontend and the local deck API. The API stores decks as JSON files in `data/decks/`.
-
-Open a deck with `?deck=<id>`. With no deck ID, the app lists the available decks.
+This starts both the Angular development server and the local deck API. The singleton presentation is stored in `data/deck.json` and opens at `/slides/1`.
 
 Create or replace a deck with:
 
 ```bash
-curl -X PUT http://127.0.0.1:3001/api/decks/product-strategy \
+curl -X PUT http://127.0.0.1:3001/api/deck \
   -H 'Content-Type: application/json' \
   --data @deck.json
 ```
@@ -39,7 +37,10 @@ npm run preview  # Preview the production build locally
 ## Project structure
 
 - `src/slides.ts` defines the typed deck and slide models and validates API data.
-- `src/deck.ts` renders slide data as HTML.
+- `src/app/slide/` renders every supported slide layout.
+- `src/app/presentation/` owns routed presentation state and navigation.
+- `src/app/sidebar/` provides thumbnail navigation and drag-to-reorder behavior.
 - `server/index.ts` provides the JSON-backed deck API.
-- `data/decks/` contains API-managed deck files.
-- `theme.css` contains the presentation styling.
+- `data/deck.json` is the API-managed presentation file.
+
+Use the browser Print dialog and Save as PDF to export all slides in 16:9 format.

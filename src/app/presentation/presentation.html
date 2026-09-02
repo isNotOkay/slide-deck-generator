@@ -1,0 +1,79 @@
+<main class="presentation-shell">
+  @if (deck(); as loadedDeck) {
+    <app-sidebar
+      [slides]="loadedDeck.slides"
+      [activeIndex]="currentIndex()"
+      [saving]="saving()"
+      [saveError]="saveError()"
+      (slideSelected)="navigateTo($event)"
+      (slidesReordered)="reorderSlides($event)"
+    />
+  } @else {
+    <div class="sidebar-placeholder" aria-hidden="true"></div>
+  }
+
+  <section class="workspace" aria-label="Presentation viewer">
+    <div class="stage">
+      @if (loading()) {
+        <div class="status-card loading-chrome" role="status">
+          <span class="spinner" aria-hidden="true"></span>
+          <h2>Loading presentation</h2>
+          <p>Fetching the latest slides…</p>
+        </div>
+      } @else if (loadError(); as message) {
+        <div class="status-card error-chrome" role="alert">
+          <p class="status-kicker">API error</p>
+          <h2>Unable to load presentation</h2>
+          <p>{{ message }}</p>
+          <button type="button" (click)="loadDeck()">Try again</button>
+        </div>
+      } @else if (deck(); as loadedDeck) {
+        @if (loadedDeck.slides.length === 0) {
+          <div class="status-card empty-chrome">
+            <p class="status-kicker">Empty deck</p>
+            <h2>No slides yet</h2>
+            <p>Add slides through <code>PUT /api/deck</code>. They will appear here automatically after a reload.</p>
+          </div>
+        } @else {
+          <div class="slide-stack">
+            @for (slide of loadedDeck.slides; track slide; let index = $index) {
+              <app-slide
+                class="main-slide"
+                [class.is-active]="currentIndex() === index"
+                [slide]="slide"
+                [attr.aria-label]="'Slide ' + (index + 1) + ' of ' + loadedDeck.slides.length"
+                [attr.aria-hidden]="currentIndex() === index ? null : 'true'"
+              />
+            }
+          </div>
+        }
+      }
+    </div>
+
+    <nav class="controls app-chrome" aria-label="Presentation controls">
+      <button
+        matIconButton
+        type="button"
+        aria-label="Previous slide"
+        [disabled]="!canGoPrevious()"
+        (click)="navigateTo(currentIndex() - 1)"
+      >
+        <span class="material-symbols-outlined" aria-hidden="true">chevron_left</span>
+      </button>
+      <span class="counter" aria-live="polite">
+        {{ slideCount() === 0 ? 0 : currentIndex() + 1 }} / {{ slideCount() }}
+      </span>
+      <button
+        matIconButton
+        type="button"
+        aria-label="Next slide"
+        [disabled]="!canGoNext()"
+        (click)="navigateTo(currentIndex() + 1)"
+      >
+        <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+      </button>
+    </nav>
+
+    <p class="visually-hidden" aria-live="assertive" aria-atomic="true">{{ announcement() }}</p>
+  </section>
+</main>

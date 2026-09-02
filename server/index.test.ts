@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { AddressInfo } from "node:net";
@@ -7,9 +7,12 @@ import test from "node:test";
 
 import { createApiServer } from "./index.ts";
 
-test("deck API lists, creates, loads, and validates decks", async t => {
+test("deck API loads, replaces, and validates the singleton deck", async t => {
     const directory = await mkdtemp(join(tmpdir(), "slide-deck-generator-"));
-    const server = createApiServer(directory);
+    const deckFile = join(directory, "deck.json");
+    const initialDeck = { title: "Untitled presentation", slides: [] };
+    await writeFile(deckFile, JSON.stringify(initialDeck), "utf8");
+    const server = createApiServer(deckFile);
 
     t.after(async () => {
         await new Promise<void>((resolve, reject) => {
@@ -30,30 +33,36 @@ test("deck API lists, creates, loads, and validates decks", async t => {
         slides: [{ type: "title", title: "First slide" }]
     };
 
-    const emptyList = await fetch(`${baseUrl}/api/decks`);
-    assert.equal(emptyList.status, 200);
-    assert.deepEqual(await emptyList.json(), []);
+    const loadedInitial = await fetch(`${baseUrl}/api/deck`);
+    assert.equal(loadedInitial.status, 200);
+    assert.deepEqual(await loadedInitial.json(), initialDeck);
 
-    const created = await fetch(`${baseUrl}/api/decks/runtime-test`, {
+    const replaced = await fetch(`${baseUrl}/api/deck`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(deck)
     });
-    assert.equal(created.status, 200);
-    assert.deepEqual(await created.json(), deck);
+    assert.equal(replaced.status, 200);
+    assert.deepEqual(await replaced.json(), deck);
 
-    const loaded = await fetch(`${baseUrl}/api/decks/runtime-test`);
+    const loaded = await fetch(`${baseUrl}/api/deck`);
     assert.equal(loaded.status, 200);
     assert.deepEqual(await loaded.json(), deck);
     assert.equal(
-        JSON.parse(await readFile(join(directory, "runtime-test.json"), "utf8")).title,
+        JSON.parse(await readFile(deckFile, "utf8")).title,
         "Runtime deck"
     );
 
-    const invalid = await fetch(`${baseUrl}/api/decks/runtime-test`, {
+    const invalid = await fetch(`${baseUrl}/api/deck`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: "Missing slides" })
     });
     assert.equal(invalid.status, 400);
+
+    const legacyEndpoint = await fetch(`${baseUrl}/api/decks`);
+    assert.equal(legacyEndpoint.status, 404);
+
+    const unsupportedMethod = await fetch(`${baseUrl}/api/deck`, { method: "POST" });
+    assert.equal(unsupportedMethod.status, 405);
 });

@@ -1,20 +1,6 @@
-@baseUrl = http://127.0.0.1:3001
-
-### Load the presentation
-GET {{baseUrl}}/api/deck
-
-### Replace the presentation
-PUT {{baseUrl}}/api/deck
-Content-Type: application/json
-
 {
   "title": "HTTP test presentation",
   "slides": [
-    {
-      "type": "title",
-      "title": "HTTP test presentation",
-      "subtitle": "Created through api.http"
-    },
     {
       "type": "content",
       "title": "Test content",
@@ -24,6 +10,11 @@ Content-Type: application/json
         "Validated by the API",
         "Persisted as JSON"
       ]
+    },
+    {
+      "type": "title",
+      "title": "HTTP test presentation",
+      "subtitle": "Created through api.http"
     }
   ]
 }
