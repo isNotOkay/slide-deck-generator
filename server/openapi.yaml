@@ -6,8 +6,8 @@ info:
     is authoritative for supported slide layouts and fields. Prefer PATCH for localized edits and PUT only for complete
     replacement.
 servers:
-  - url: http://127.0.0.1:3001
-    description: Local development server
+  - url: https://159.195.7.18
+    description: HTTPS API server
 paths:
   /api/deck:
     get:
@@ -29,10 +29,8 @@ paths:
     put:
       operationId: replaceDeck
       summary: Create or replace the complete deck
-      description: Creates or completely replaces the current presentation. The body must contain the entire valid
-        deck. Use this for initial generation or intentional whole-deck replacement. Every slide must use one of
-        the supported slide schemas defined by this OpenAPI document. Do not invent new slide types or arbitrary
-        fields. Prefer patchDeck for localized edits.
+      description: Creates or replaces the complete presentation. Use for initial generation or full-deck replacement.
+        Every slide must conform to a supported slide schema. Prefer patchDeck for localized edits.
       requestBody:
         required: true
         content:
@@ -55,10 +53,8 @@ paths:
     patch:
       operationId: patchDeck
       summary: Apply incremental deck edits
-      description: Applies one or more semantic operations to the current deck. Related edits should be batched
-        into one request. The resulting complete deck is validated before it is saved. All generated or modified
-        slides must use only the slide types and fields defined by this schema. Prefer this operation over replaceDeck
-        when modifying an existing deck.
+      description: Applies semantic edits to the current deck. Batch related changes in one request. The updated deck
+        is validated before saving. Use only supported slide types and fields. Prefer this for localized edits.
       requestBody:
         required: true
         content:
