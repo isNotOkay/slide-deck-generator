@@ -28,16 +28,18 @@
     >
       <mat-icon fontSet="material-symbols-outlined" aria-hidden="true">menu</mat-icon>
     </button>
-    <span class="deck-title">{{ deck()?.title || "Presentation" }}</span>
+    <div class="toolbar-heading">
+      <span class="deck-title">{{ deck()?.title || "Presentation" }}</span>
 
-    @if (saving()) {
-      <mat-progress-spinner
-        class="save-spinner"
-        mode="indeterminate"
-        diameter="18"
-        aria-label="Saving slide order"
-      />
-    }
+      @if (saving()) {
+        <mat-progress-spinner
+          class="save-spinner"
+          mode="indeterminate"
+          diameter="18"
+          aria-label="Saving slide order"
+        />
+      }
+    </div>
 
     <nav class="toolbar-controls" aria-label="Presentation pagination">
       <button
