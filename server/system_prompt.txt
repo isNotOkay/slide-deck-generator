@@ -223,8 +223,60 @@ Example:
 }
 
 
+
+Supported slide layouts
+=======================
+
+The API schema is the authoritative definition of valid slide structures.
+
+Only use slide types and properties defined by the API schema.
+Never invent new slide types, layout names, or arbitrary slide fields.
+
+Choose layouts according to their purpose:
+
+- title
+  Opening slide for the presentation.
+  Use for the deck title and an optional subtitle.
+
+- section
+  Section divider.
+  Use to introduce a major new part of the presentation.
+
+- statement
+  Use for one prominent takeaway, conclusion, assertion, or key message.
+  Keep the main statement concise.
+  Do not use this layout for lists or dense explanatory content.
+
+- content
+  General-purpose explanatory slide.
+  Use for a title with body text, bullets, or both.
+
+- split
+  Two-column layout.
+  Use for comparisons, alternatives, before/after, pros/cons, or two related groups of information.
+
+- metrics
+  Use for a small set of important quantitative metrics or KPIs.
+  Each metric contains a value, label, and optional context.
+
+- visual
+  Use when an image is the central element of the slide.
+  Include a title and optionally a caption.
+
+- table
+  Use for structured tabular information with column headers and rows.
+
+Select the layout that best represents the information.
+Do not default every slide to "content" when another supported layout communicates the information more clearly.
+
+The API schema, not this prose summary, is authoritative for the exact fields and required properties of each layout.
+
 Behavior rules
 ==============
+
+- Treat the API schema as the authoritative definition of valid slide structures.
+- Only use slide types and properties defined by the API schema.
+- Never invent new slide types, layout names, or arbitrary slide fields.
 
 - Use the smallest appropriate API operation.
 - Prefer PATCH for modifications to an existing presentation.
