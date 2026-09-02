@@ -10,7 +10,7 @@
     "api": "tsx server/index.ts",
     "build": "ng build",
     "check": "ngc -p tsconfig.app.json --noEmit && tsc -p tsconfig.server.json --noEmit",
-    "test": "tsx --test server/index.test.ts",
+    "test": "tsx --test server/*.test.ts",
     "preview": "ng serve --configuration production --proxy-config proxy.conf.json"
   },
   "dependencies": {

@@ -140,6 +140,54 @@
     </div>
   </mat-toolbar>
 
+  <div class="review-slot">
+    @if (review()) {
+      <section class="review-bar" aria-label="Slide review" aria-live="polite">
+        <span class="review-summary">
+          {{ reviewableChanges().length }} {{ reviewableChanges().length === 1 ? "slide" : "slides" }} updated
+        </span>
+        <div class="review-metrics" aria-label="Change summary">
+          @if (reviewAddedCount() > 0) {
+            <span class="review-metric review-metric-added">
+              <mat-icon fontSet="material-symbols-outlined" aria-hidden="true">add</mat-icon>
+              <span>Added</span>
+              <strong>{{ reviewAddedCount() }}</strong>
+            </span>
+          }
+          @if (reviewRemovedCount() > 0) {
+            <span class="review-metric review-metric-removed">
+              <mat-icon fontSet="material-symbols-outlined" aria-hidden="true">remove</mat-icon>
+              <span>Removed</span>
+              <strong>{{ reviewRemovedCount() }}</strong>
+            </span>
+          }
+          @if (reviewChangedCount() > 0) {
+            <span class="review-metric review-metric-modified">
+              <mat-icon fontSet="material-symbols-outlined" aria-hidden="true">edit</mat-icon>
+              <span>Modified</span>
+              <strong>{{ reviewChangedCount() }}</strong>
+            </span>
+          }
+          @if (reviewMovedCount() > 0) {
+            <span class="review-metric review-metric-moved">
+              <mat-icon fontSet="material-symbols-outlined" aria-hidden="true">swap_vert</mat-icon>
+              <span>Moved</span>
+              <strong>{{ reviewMovedCount() }}</strong>
+            </span>
+          }
+        </div>
+        <div class="review-navigation" aria-label="Review navigation">
+          <button matButton type="button" [disabled]="!canReviewPrevious()" (click)="reviewPrevious()">Previous</button>
+          <button matButton type="button" [disabled]="!canReviewNext()" (click)="reviewNext()">Next</button>
+        </div>
+        <div class="review-actions">
+          <button matButton type="button" [disabled]="saving()" (click)="undoReview()">Undo</button>
+          <button matButton="filled" type="button" class="done-button" (click)="finishReview()">Done</button>
+        </div>
+      </section>
+    }
+  </div>
+
   <mat-sidenav-container class="drawer-shell">
     <mat-sidenav
       #drawer
@@ -151,6 +199,7 @@
       @if (deck(); as loadedDeck) {
         <app-sidebar
           [slides]="loadedDeck.slides"
+          [slideChanges]="review()?.diff?.changes ?? []"
           [activeIndex]="currentIndex()"
           (slideSelected)="selectSlide($event)"
           (slidesReordered)="reorderSlides($event)"
@@ -191,16 +240,48 @@
             </mat-card-content>
           </mat-card>
         } @else {
-          <div class="slide-stack">
-            @for (slide of loadedDeck.slides; track slide; let index = $index) {
-              <app-slide
-                class="main-slide"
-                [class.is-active]="currentIndex() === index"
-                [slide]="slide"
-                [attr.aria-label]="'Slide ' + (index + 1) + ' of ' + loadedDeck.slides.length"
-                [attr.aria-hidden]="currentIndex() === index ? null : 'true'"
-              />
-            }
+          <div class="stage-content">
+            <div class="slide-stack">
+              @if (currentReviewChange(); as change) {
+                <div class="comparison-bar" aria-label="Slide comparison">
+                  <span
+                    class="comparison-status"
+                    [class.comparison-status-added]="change.added"
+                    [class.comparison-status-modified]="change.changed"
+                    [class.comparison-status-moved]="!change.changed && change.moved"
+                  >
+                    @if (change.added) {
+                      <mat-icon fontSet="material-symbols-outlined" aria-hidden="true">add</mat-icon>
+                    } @else if (change.changed) {
+                      <span class="comparison-status-dot" aria-hidden="true"></span>
+                    } @else {
+                      <mat-icon fontSet="material-symbols-outlined" aria-hidden="true">swap_vert</mat-icon>
+                    }
+                    <span>{{ comparisonLabel(change) }}</span>
+                  </span>
+                  @if (currentComparison()) {
+                    <mat-button-toggle-group
+                      class="comparison-toggle"
+                      [value]="showBefore() ? 'before' : 'after'"
+                      (change)="setComparisonMode($event.value)"
+                      aria-label="Slide version"
+                    >
+                      <mat-button-toggle value="before">Before</mat-button-toggle>
+                      <mat-button-toggle value="after">After</mat-button-toggle>
+                    </mat-button-toggle-group>
+                  }
+                </div>
+              }
+              @for (slide of loadedDeck.slides; track slide.id; let index = $index) {
+                <app-slide
+                  class="main-slide"
+                  [class.is-active]="currentIndex() === index"
+                  [slide]="currentIndex() === index && stageSlide() ? stageSlide()! : slide"
+                  [attr.aria-label]="'Slide ' + (index + 1) + ' of ' + loadedDeck.slides.length"
+                  [attr.aria-hidden]="currentIndex() === index ? null : 'true'"
+                />
+              }
+            </div>
           </div>
         }
       }
@@ -208,7 +289,7 @@
 
       <div #exportStage class="export-stage" aria-hidden="true">
         @if (deck(); as exportDeck) {
-          @for (slide of exportDeck.slides; track slide) {
+          @for (slide of exportDeck.slides; track slide.id) {
             <app-slide class="export-slide" [slide]="slide" />
           }
         }

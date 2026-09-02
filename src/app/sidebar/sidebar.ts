@@ -3,6 +3,7 @@ import { CdkScrollable } from "@angular/cdk/scrolling";
 import { MatIcon } from "@angular/material/icon";
 import { ChangeDetectionStrategy, Component, ElementRef, effect, input, output, viewChildren } from "@angular/core";
 
+import type { SlideChange } from "../../deck-diff";
 import type { Slide as SlideModel } from "../../slides";
 import { Slide } from "../slide/slide";
 
@@ -26,6 +27,7 @@ export type SlideReorder = Pick<CdkDragDrop<readonly SlideModel[]>, "previousInd
 export class Sidebar {
   readonly slides = input.required<readonly SlideModel[]>();
   readonly activeIndex = input.required<number>();
+  readonly slideChanges = input<readonly SlideChange[]>([]);
 
   readonly slideSelected = output<number>();
   readonly slidesReordered = output<SlideReorder>();
@@ -48,5 +50,13 @@ export class Sidebar {
 
   protected slideTitle(slide: SlideModel): string {
     return slide.type === "statement" ? slide.statement : slide.title;
+  }
+
+  protected markerFor(slide: SlideModel): "added" | "modified" | null {
+    const change = this.slideChanges().find(entry => entry.slideId === slide.id);
+    if (!change) return null;
+    if (change.added) return "added";
+    if (change.changed || change.moved) return "modified";
+    return null;
   }
 }

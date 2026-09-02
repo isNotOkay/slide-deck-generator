@@ -6,7 +6,7 @@
     [cdkDropListData]="slides()"
     (cdkDropListDropped)="dropped($event)"
   >
-    @for (slide of slides(); track slide; let index = $index) {
+    @for (slide of slides(); track slide.id; let index = $index) {
       <li cdkDrag [cdkDragData]="slide">
         <div class="thumbnail-row" [class.is-active]="activeIndex() === index">
           <button
@@ -22,6 +22,18 @@
               <span class="number">{{ index + 1 }}</span>
               <span class="title">{{ slideTitle(slide) }}</span>
             </span>
+            @if (markerFor(slide); as marker) {
+              <span
+                class="review-marker"
+                [class.review-marker-added]="marker === 'added'"
+                [class.review-marker-modified]="marker === 'modified'"
+                [attr.aria-label]="marker === 'added' ? 'Added slide' : 'Modified slide'"
+              >
+                @if (marker === "added") {
+                  <mat-icon fontSet="material-symbols-outlined" aria-hidden="true">add</mat-icon>
+                }
+              </span>
+            }
           </button>
           <button
             type="button"

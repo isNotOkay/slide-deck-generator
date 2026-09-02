@@ -30,7 +30,7 @@ test("deck API loads, replaces, and validates the singleton deck", async t => {
     const baseUrl = `http://127.0.0.1:${address.port}`;
     const deck = {
         title: "Runtime deck",
-        slides: [{ type: "title", title: "First slide" }]
+        slides: [{ id: "first-slide", type: "title", title: "First slide" }]
     };
 
     const loadedInitial = await fetch(`${baseUrl}/api/deck`);

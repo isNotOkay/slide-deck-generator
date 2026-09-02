@@ -3,7 +3,8 @@
 ### Load the presentation
 GET {{baseUrl}}/api/deck
 
-### Replace the presentation
+
+### 0. Create baseline presentation
 PUT {{baseUrl}}/api/deck
 Content-Type: application/json
 
@@ -11,11 +12,13 @@ Content-Type: application/json
   "title": "HTTP test presentation",
   "slides": [
     {
+      "id": "11111111-1111-4111-8111-111111111111",
       "type": "title",
       "title": "HTTP test presentation",
       "subtitle": "Created through api.http"
     },
     {
+      "id": "22222222-2222-4222-8222-222222222222",
       "type": "content",
       "title": "Test content",
       "body": "This presentation verifies the JSON-backed API.",
@@ -23,6 +26,91 @@ Content-Type: application/json
         "Created with PUT",
         "Validated by the API",
         "Persisted as JSON XXX"
+      ]
+    }
+  ]
+}
+
+
+### 1. Test simple diff: add exactly one slide
+### Expected UX:
+### - Navigate directly to the new slide
+### - Show something like "Added slide 3"
+### - Do NOT enter full review mode
+PUT {{baseUrl}}/api/deck
+Content-Type: application/json
+
+{
+  "title": "HTTP test presentation",
+  "slides": [
+    {
+      "id": "11111111-1111-4111-8111-111111111111",
+      "type": "title",
+      "title": "HTTP test presentation",
+      "subtitle": "Created through api.http"
+    },
+    {
+      "id": "22222222-2222-4222-8222-222222222222",
+      "type": "content",
+      "title": "Test content",
+      "body": "This presentation verifies the JSON-backed API.",
+      "bullets": [
+        "Created with PUT",
+        "Validated by the API",
+        "Persisted as JSON XXX"
+      ]
+    },
+    {
+      "id": "33333333-3333-4333-8333-333333333333",
+      "type": "statement",
+      "statement": "The API is ready for AI-driven slide generation.",
+      "supportingText": "This slide was added without changing the existing slides."
+    }
+  ]
+}
+
+
+### 2. Test complex diff: edit + move + remove + add
+### Run this after request 1.
+###
+### Expected diff:
+### - title slide edited
+### - "Test content" moved from slide 2 to slide 3 AND edited
+### - previous statement slide removed
+### - new executive summary added at slide 2
+### - full review mode should appear
+PUT {{baseUrl}}/api/deck
+Content-Type: application/json
+
+{
+  "title": "HTTP test presentation — revised",
+  "slides": [
+    {
+      "id": "11111111-1111-4111-8111-111111111111",
+      "type": "title",
+      "title": "HTTP API presentation",
+      "subtitle": "Restructured and refined by an AI agent"
+    },
+    {
+      "id": "44444444-4444-4444-8444-444444444444",
+      "type": "content",
+      "title": "Executive summary",
+      "body": "The presentation API provides a small validated JSON interface for creating and updating slide decks.",
+      "bullets": [
+        "Simple HTTP interface",
+        "Validated slide schema",
+        "Persistent JSON storage"
+      ]
+    },
+    {
+      "id": "22222222-2222-4222-8222-222222222222",
+      "type": "content",
+      "title": "API validation and persistence",
+      "body": "The API validates incoming decks before persisting them.",
+      "bullets": [
+        "Decks are replaced through PUT",
+        "Invalid payloads are rejected",
+        "Changes are persisted atomically"
       ]
     }
   ]

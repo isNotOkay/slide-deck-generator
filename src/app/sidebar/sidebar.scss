@@ -104,6 +104,7 @@ li {
 }
 
 .caption {
+  position: relative;
   display: flex;
   align-items: baseline;
   gap: 7px;
@@ -112,6 +113,44 @@ li {
   color: var(--mat-sys-on-surface-variant);
   font: var(--mat-sys-label-medium);
   line-height: 1.25;
+}
+
+.review-marker {
+  position: absolute;
+  right: 8px;
+  top: 7px;
+  display: grid;
+  width: 18px;
+  height: 18px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+  font: var(--mat-sys-label-medium);
+  font-weight: 750;
+}
+
+.review-marker-added {
+  background: #d5f5e4;
+  color: #087f5b;
+}
+
+.review-marker-added mat-icon {
+  width: 14px;
+  height: 14px;
+  font-family: "Material Symbols Outlined";
+  font-size: 14px;
+  font-variation-settings: "FILL" 0, "wght" 700, "GRAD" 0, "opsz" 20;
+}
+
+.review-marker-modified {
+  top: 9px;
+  right: 10px;
+  width: 14px;
+  height: 14px;
+  background: var(--mat-sys-primary);
+  color: transparent;
+  font-size: 0;
 }
 
 .number {

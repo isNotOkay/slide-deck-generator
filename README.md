@@ -16,7 +16,7 @@ Start the development server:
 npm run dev
 ```
 
-This starts both the Angular development server and the local deck API. The singleton presentation is stored in `data/deck.json` and opens at `/slides/1`.
+This starts both the Angular development server and the local deck API. The singleton presentation is stored in `data/deck.json` and opens at `/slides/1`. Every slide JSON object must include a unique, stable `id`; the viewer polls the API for external deck updates and presents slide-level review controls when changes arrive.
 
 Create or replace a deck with:
 

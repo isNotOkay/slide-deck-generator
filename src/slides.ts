@@ -1,22 +1,26 @@
 export type TitleSlide = {
+    id: string;
     type: "title";
     title: string;
     subtitle?: string;
 };
 
 export type SectionSlide = {
+    id: string;
     type: "section";
     title: string;
     subtitle?: string;
 };
 
 export type StatementSlide = {
+    id: string;
     type: "statement";
     statement: string;
     supportingText?: string;
 };
 
 export type ContentSlide = {
+    id: string;
     type: "content";
     title: string;
     body?: string;
@@ -24,6 +28,7 @@ export type ContentSlide = {
 };
 
 export type SplitSlide = {
+    id: string;
     type: "split";
     title: string;
 
@@ -41,12 +46,14 @@ export type Metric = {
 };
 
 export type MetricsSlide = {
+    id: string;
     type: "metrics";
     title: string;
     metrics: Metric[];
 };
 
 export type VisualSlide = {
+    id: string;
     type: "visual";
     title: string;
     image: string;
@@ -54,6 +61,7 @@ export type VisualSlide = {
 };
 
 export type TableSlide = {
+    id: string;
     type: "table";
     title: string;
     headers: string[];
@@ -134,16 +142,19 @@ function parseMetric(value: unknown, index: number): Metric {
     };
 }
 
-function parseSlide(value: unknown, index: number): Slide {
+export function parseSlide(value: unknown, index: number): Slide {
     const path = `slides[${index}]`;
 
     if (!isRecord(value) || typeof value["type"] !== "string") {
         throw new DeckValidationError(`${path}.type must be a string`);
     }
 
+    const id = requiredString(value, "id", path);
+
     switch (value["type"]) {
         case "title":
             return {
+                id,
                 type: "title",
                 title: requiredString(value, "title", path),
                 subtitle: optionalString(value, "subtitle", path)
@@ -151,6 +162,7 @@ function parseSlide(value: unknown, index: number): Slide {
 
         case "section":
             return {
+                id,
                 type: "section",
                 title: requiredString(value, "title", path),
                 subtitle: optionalString(value, "subtitle", path)
@@ -158,6 +170,7 @@ function parseSlide(value: unknown, index: number): Slide {
 
         case "statement":
             return {
+                id,
                 type: "statement",
                 statement: requiredString(value, "statement", path),
                 supportingText: optionalString(value, "supportingText", path)
@@ -165,6 +178,7 @@ function parseSlide(value: unknown, index: number): Slide {
 
         case "content":
             return {
+                id,
                 type: "content",
                 title: requiredString(value, "title", path),
                 body: optionalString(value, "body", path),
@@ -175,6 +189,7 @@ function parseSlide(value: unknown, index: number): Slide {
 
         case "split":
             return {
+                id,
                 type: "split",
                 title: requiredString(value, "title", path),
                 leftTitle: optionalString(value, "leftTitle", path),
@@ -189,6 +204,7 @@ function parseSlide(value: unknown, index: number): Slide {
             }
 
             return {
+                id,
                 type: "metrics",
                 title: requiredString(value, "title", path),
                 metrics: value["metrics"].map(parseMetric)
@@ -196,6 +212,7 @@ function parseSlide(value: unknown, index: number): Slide {
 
         case "visual":
             return {
+                id,
                 type: "visual",
                 title: requiredString(value, "title", path),
                 image: requiredString(value, "image", path),
@@ -208,6 +225,7 @@ function parseSlide(value: unknown, index: number): Slide {
             }
 
             return {
+                id,
                 type: "table",
                 title: requiredString(value, "title", path),
                 headers: stringArray(value["headers"], `${path}.headers`),
@@ -230,8 +248,19 @@ export function parseDeck(value: unknown): Deck {
         throw new DeckValidationError("Deck.slides must be an array");
     }
 
+    const slides = value["slides"].map(parseSlide);
+    const ids = new Set<string>();
+
+    for (const slide of slides) {
+        if (ids.has(slide.id)) {
+            throw new DeckValidationError(`Deck.slides contains duplicate slide id "${slide.id}"`);
+        }
+
+        ids.add(slide.id);
+    }
+
     return {
         title: requiredString(value, "title", "Deck"),
-        slides: value["slides"].map(parseSlide)
+        slides
     };
 }

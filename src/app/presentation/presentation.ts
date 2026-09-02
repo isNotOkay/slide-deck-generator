@@ -1,5 +1,6 @@
 import { moveItemInArray } from "@angular/cdk/drag-drop";
 import { BreakpointObserver } from "@angular/cdk/layout";
+import { MatButtonToggle, MatButtonToggleGroup } from "@angular/material/button-toggle";
 import type { MatDrawerMode } from "@angular/material/sidenav";
 import { MatButton, MatIconButton } from "@angular/material/button";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
@@ -13,19 +14,27 @@ import { ChangeDetectionStrategy, Component, computed, effect, ElementRef, injec
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { Title } from "@angular/platform-browser";
 import { Router } from "@angular/router";
-import { firstValueFrom } from "rxjs";
+import { EMPTY, catchError, firstValueFrom, switchMap, timer } from "rxjs";
 
+import { diffDecks, type DeckDiff, type SlideChange } from "../../deck-diff";
 import { DeckValidationError, parseDeck, type Deck } from "../../slides";
 import { DeckRepository } from "../deck.repository";
 import { PdfExportService } from "../pdf-export.service";
 import { Sidebar, type SlideReorder } from "../sidebar/sidebar";
 import { Slide } from "../slide/slide";
 
+export type DeckReview = {
+  before: Deck;
+  diff: DeckDiff;
+};
+
 @Component({
   selector: "app-presentation",
   imports: [
     Sidebar,
     Slide,
+    MatButtonToggle,
+    MatButtonToggleGroup,
     MatButton,
     MatCard,
     MatCardActions,
@@ -75,6 +84,8 @@ export class Presentation {
   protected readonly isMobile = signal(false);
   protected readonly drawerOpened = signal(false);
   protected readonly fileDragActive = signal(false);
+  protected readonly review = signal<DeckReview | null>(null);
+  protected readonly showBefore = signal(false);
 
   private fileDragDepth = 0;
 
@@ -86,6 +97,59 @@ export class Presentation {
   protected readonly canGoNext = computed(() => this.slideCount() > 0 && this.currentIndex() < this.slideCount() - 1);
   protected readonly drawerMode = computed<MatDrawerMode>(() => this.isMobile() ? "over" : "side");
   protected readonly drawerIsOpen = computed(() => !this.isMobile() || this.drawerOpened());
+  protected readonly reviewableChanges = computed(() =>
+    this.review()?.diff.changes.filter(change =>
+      !change.removed && change.afterIndex !== undefined &&
+      (change.added || change.changed || change.moved)
+    ) ?? []
+  );
+  protected readonly reviewableIndices = computed(() =>
+    this.reviewableChanges()
+      .map(change => change.afterIndex)
+      .filter((index): index is number => index !== undefined)
+      .sort((left, right) => left - right)
+  );
+  protected readonly reviewAddedCount = computed(() =>
+    this.review()?.diff.changes.filter(change => change.added).length ?? 0
+  );
+  protected readonly reviewRemovedCount = computed(() =>
+    this.review()?.diff.changes.filter(change => change.removed).length ?? 0
+  );
+  protected readonly reviewChangedCount = computed(() =>
+    this.review()?.diff.changes.filter(change => change.changed).length ?? 0
+  );
+  protected readonly reviewMovedCount = computed(() =>
+    this.review()?.diff.changes.filter(change => change.moved).length ?? 0
+  );
+  protected readonly reviewPreviousIndex = computed(() =>
+    [...this.reviewableIndices()].reverse().find(index => index < this.currentIndex())
+  );
+  protected readonly reviewNextIndex = computed(() =>
+    this.reviewableIndices().find(index => index > this.currentIndex())
+  );
+  protected readonly canReviewPrevious = computed(() => this.reviewPreviousIndex() !== undefined);
+  protected readonly canReviewNext = computed(() => this.reviewNextIndex() !== undefined);
+  protected readonly currentSlide = computed(() => this.deck()?.slides[this.currentIndex()]);
+  protected readonly currentReviewChange = computed(() => {
+    const currentSlide = this.currentSlide();
+    const activeReview = this.review();
+    if (!currentSlide || !activeReview) return null;
+
+    const change = activeReview.diff.changes.find(entry => entry.slideId === currentSlide.id);
+    return change && (change.added || change.changed || change.moved) ? change : null;
+  });
+  protected readonly currentComparison = computed(() => {
+    const change = this.currentReviewChange();
+    if (!change || !change.changed || change.beforeIndex === undefined) return null;
+
+    const beforeSlide = this.review()?.before.slides.find(slide => slide.id === change.slideId);
+    return beforeSlide ? { beforeSlide, change } : null;
+  });
+  protected readonly stageSlide = computed(() => {
+    const currentSlide = this.currentSlide();
+    const comparison = this.currentComparison();
+    return this.showBefore() && comparison ? comparison.beforeSlide : currentSlide;
+  });
 
   constructor() {
     effect(() => {
@@ -105,6 +169,7 @@ export class Presentation {
     });
 
     this.loadDeck();
+    this.startPolling();
   }
 
   protected loadDeck(): void {
@@ -114,6 +179,8 @@ export class Presentation {
     this.repository.load().subscribe({
       next: deck => {
         this.deck.set(deck);
+        this.review.set(null);
+        this.showBefore.set(false);
         this.loading.set(false);
         this.snackBar.dismiss();
       },
@@ -143,6 +210,7 @@ export class Presentation {
   }
 
   protected navigateTo(index: number, replaceUrl = false): Promise<boolean> {
+    this.showBefore.set(false);
     const count = this.slideCount();
     const boundedIndex = count === 0 ? 0 : Math.min(Math.max(index, 0), count - 1);
     return this.router.navigate(["/slides", boundedIndex + 1], { replaceUrl });
@@ -152,19 +220,24 @@ export class Presentation {
     const previousDeck = this.deck();
     if (!previousDeck || this.exporting() || event.previousIndex === event.currentIndex) return;
 
+    this.review.set(null);
+    this.showBefore.set(false);
     const previousIndex = this.currentIndex();
-    const selectedSlide = previousDeck.slides[previousIndex];
+    const selectedSlideId = previousDeck.slides[previousIndex]?.id;
     const reorderedSlides = [...previousDeck.slides];
     moveItemInArray(reorderedSlides, event.previousIndex, event.currentIndex);
 
     const optimisticDeck = { ...previousDeck, slides: reorderedSlides };
-    const selectedIndex = selectedSlide ? reorderedSlides.indexOf(selectedSlide) : 0;
+    const selectedIndex = selectedSlideId
+      ? reorderedSlides.findIndex(slide => slide.id === selectedSlideId)
+      : 0;
     this.deck.set(optimisticDeck);
     this.saving.set(true);
 
     try {
       await this.navigateTo(selectedIndex, true);
-      await firstValueFrom(this.repository.save(optimisticDeck));
+      const savedDeck = await firstValueFrom(this.repository.save(optimisticDeck));
+      this.deck.set(savedDeck);
     } catch (error) {
       this.deck.set(previousDeck);
       await this.navigateTo(previousIndex, true);
@@ -276,6 +349,74 @@ export class Presentation {
     }
   }
 
+  protected reviewPrevious(): void {
+    this.navigateToReviewSlide(-1);
+  }
+
+  protected reviewNext(): void {
+    this.navigateToReviewSlide(1);
+  }
+
+  protected showBeforeSlide(): void {
+    if (this.currentComparison()) {
+      this.showBefore.set(true);
+    }
+  }
+
+  protected showAfterSlide(): void {
+    this.showBefore.set(false);
+  }
+
+  protected setComparisonMode(mode: string | undefined): void {
+    if (mode === "before") {
+      this.showBeforeSlide();
+    } else if (mode === "after") {
+      this.showAfterSlide();
+    }
+  }
+
+  protected comparisonLabel(change: SlideChange): string {
+    if (change.added) return "Added";
+
+    if (change.moved && change.beforeIndex !== undefined) {
+      return change.changed
+        ? `Modified · moved from slide ${change.beforeIndex + 1}`
+        : `Moved from slide ${change.beforeIndex + 1}`;
+    }
+
+    return change.changed ? "Modified" : "Moved";
+  }
+
+  protected finishReview(): void {
+    this.review.set(null);
+    this.showBefore.set(false);
+  }
+
+  protected async undoReview(): Promise<void> {
+    const activeReview = this.review();
+    const currentSlideId = this.currentSlide()?.id;
+    if (!activeReview || this.saving()) return;
+
+    this.saving.set(true);
+
+    try {
+      const restoredDeck = await firstValueFrom(this.repository.save(activeReview.before));
+      this.deck.set(restoredDeck);
+      this.review.set(null);
+      this.showBefore.set(false);
+      const restoredIndex = currentSlideId
+        ? restoredDeck.slides.findIndex(slide => slide.id === currentSlideId)
+        : -1;
+      await this.navigateTo(restoredIndex >= 0 ? restoredIndex : Math.min(this.currentIndex(), restoredDeck.slides.length - 1), true);
+      this.showConfirmation("AI changes undone.");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "The previous deck could not be restored.";
+      this.showError(`Unable to undo AI changes. ${message}`);
+    } finally {
+      this.saving.set(false);
+    }
+  }
+
   private canonicalNumber(value: string, count: number): number {
     const parsed = /^\d+$/.test(value) ? Number(value) : 1;
     if (!Number.isSafeInteger(parsed)) return 1;
@@ -297,6 +438,8 @@ export class Presentation {
     }
 
     this.opening.set(true);
+    this.review.set(null);
+    this.showBefore.set(false);
 
     try {
       const parsedJson: unknown = JSON.parse(await files[0].text());
@@ -312,6 +455,82 @@ export class Presentation {
     } finally {
       this.opening.set(false);
     }
+  }
+
+  private startPolling(): void {
+    timer(1500, 1500).pipe(
+      switchMap(() => this.repository.load().pipe(catchError(() => EMPTY))),
+      takeUntilDestroyed()
+    ).subscribe(deck => {
+      if (this.loading() || this.saving() || this.opening()) return;
+      void this.applyUpdatedDeck(deck);
+    });
+  }
+
+  private async applyUpdatedDeck(value: unknown): Promise<void> {
+    const currentDeck = this.deck();
+    if (!currentDeck) return;
+
+    let updatedDeck: Deck;
+    try {
+      updatedDeck = parseDeck(value);
+    } catch (error) {
+      this.showError(`Unable to apply presentation update. ${this.describeOpenError(error)}`);
+      return;
+    }
+
+    if (this.sameDeck(currentDeck, updatedDeck)) return;
+
+    const diff = diffDecks(currentDeck, updatedDeck);
+    const added = diff.changes.filter(change => change.added);
+    const removed = diff.changes.filter(change => change.removed);
+    const changed = diff.changes.filter(change => change.changed);
+    const moved = diff.changes.filter(change => change.moved);
+    const isTrivialAddition = added.length === 1 && removed.length === 0 && changed.length === 0 && moved.length === 0;
+
+    this.deck.set(updatedDeck);
+    this.loadError.set(null);
+
+    if (isTrivialAddition) {
+      this.review.set(null);
+      this.showBefore.set(false);
+      const addedIndex = added[0].afterIndex;
+      if (addedIndex !== undefined) {
+        await this.navigateTo(addedIndex, true);
+      }
+      this.showConfirmation(`Added slide ${(addedIndex ?? 0) + 1}`);
+      return;
+    }
+
+    if (diff.changes.some(change => change.changed || change.moved || change.added || change.removed)) {
+      this.review.set({ before: currentDeck, diff });
+      this.showBefore.set(false);
+      const firstReviewIndex = diff.changes.find(change =>
+        change.afterIndex !== undefined && (change.added || change.changed || change.moved)
+      )?.afterIndex;
+      if (firstReviewIndex !== undefined) {
+        await this.navigateTo(firstReviewIndex, true);
+      }
+    } else {
+      this.review.set(null);
+      this.showBefore.set(false);
+    }
+  }
+
+  private navigateToReviewSlide(direction: -1 | 1): void {
+    if (this.reviewableIndices().length === 0) return;
+
+    const nextIndex = direction > 0
+      ? this.reviewNextIndex()
+      : this.reviewPreviousIndex();
+
+    if (nextIndex !== undefined) {
+      void this.navigateTo(nextIndex);
+    }
+  }
+
+  private sameDeck(left: Deck, right: Deck): boolean {
+    return JSON.stringify(left) === JSON.stringify(right);
   }
 
   private isExternalFileDrag(event: DragEvent): boolean {
@@ -355,6 +574,14 @@ export class Presentation {
       duration: 7000,
       horizontalPosition: "end",
       politeness: "assertive",
+      verticalPosition: "bottom"
+    });
+  }
+
+  private showConfirmation(message: string): void {
+    this.snackBar.open(message, "Dismiss", {
+      duration: 3500,
+      horizontalPosition: "end",
       verticalPosition: "bottom"
     });
   }
