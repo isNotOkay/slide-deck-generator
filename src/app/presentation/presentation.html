@@ -39,7 +39,7 @@
       />
     }
 
-    <nav class="toolbar-controls" aria-label="Presentation controls">
+    <nav class="toolbar-controls" aria-label="Presentation pagination">
       <button
         matIconButton
         type="button"
@@ -62,6 +62,55 @@
         <mat-icon fontSet="material-symbols-outlined" aria-hidden="true">chevron_right</mat-icon>
       </button>
     </nav>
+
+    <div class="toolbar-actions" aria-label="Presentation actions">
+      <button
+        matButton
+        type="button"
+        class="toolbar-action open-button"
+        aria-label="Open JSON presentation"
+        [disabled]="opening() || exporting()"
+        (click)="openJsonFilePicker()"
+      >
+        <mat-icon fontSet="material-symbols-outlined" aria-hidden="true">folder_open</mat-icon>
+        <span>Open</span>
+      </button>
+
+      <button
+        matButton
+        type="button"
+        class="toolbar-action download-button"
+        [matMenuTriggerFor]="downloadMenu"
+        [disabled]="exporting()"
+        [attr.aria-busy]="exporting() ? 'true' : null"
+        aria-label="Download presentation"
+      >
+        <mat-icon fontSet="material-symbols-outlined" aria-hidden="true">download</mat-icon>
+        <span>{{ exporting() ? "Exporting…" : "Download" }}</span>
+      </button>
+
+      <mat-menu #downloadMenu="matMenu" class="download-menu" aria-label="Download options">
+        <button
+          mat-menu-item
+          class="download-menu-item"
+          [disabled]="slideCount() === 0 || exporting()"
+          (click)="exportDeck()"
+        >
+          <mat-icon fontSet="material-symbols-outlined" aria-hidden="true">picture_as_pdf</mat-icon>
+          <span class="menu-copy">
+            <span class="menu-primary">PDF</span>
+            <span class="menu-secondary">All slides</span>
+          </span>
+        </button>
+        <button mat-menu-item class="download-menu-item" (click)="downloadDeckJson()">
+          <mat-icon fontSet="material-symbols-outlined" aria-hidden="true">data_object</mat-icon>
+          <span class="menu-copy">
+            <span class="menu-primary">JSON</span>
+            <span class="menu-secondary">Source data</span>
+          </span>
+        </button>
+      </mat-menu>
+    </div>
   </mat-toolbar>
 
   <mat-sidenav-container class="drawer-shell">
@@ -76,13 +125,8 @@
         <app-sidebar
           [slides]="loadedDeck.slides"
           [activeIndex]="currentIndex()"
-          [exporting]="exporting()"
-          [opening]="opening()"
           (slideSelected)="selectSlide($event)"
           (slidesReordered)="reorderSlides($event)"
-          (pdfRequested)="exportDeck()"
-          (jsonRequested)="downloadDeckJson()"
-          (openRequested)="openJsonFilePicker()"
         />
       } @else {
         <div class="sidebar-placeholder" aria-hidden="true"></div>

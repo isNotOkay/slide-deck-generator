@@ -1,8 +1,6 @@
 import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDragPlaceholder, CdkDropList } from "@angular/cdk/drag-drop";
 import { CdkScrollable } from "@angular/cdk/scrolling";
-import { MatButton } from "@angular/material/button";
 import { MatIcon } from "@angular/material/icon";
-import { MatMenu, MatMenuItem, MatMenuTrigger } from "@angular/material/menu";
 import { ChangeDetectionStrategy, Component, ElementRef, effect, input, output, viewChildren } from "@angular/core";
 
 import type { Slide as SlideModel } from "../../slides";
@@ -18,11 +16,7 @@ export type SlideReorder = Pick<CdkDragDrop<readonly SlideModel[]>, "previousInd
     CdkDragHandle,
     CdkDragPlaceholder,
     CdkScrollable,
-    MatButton,
     MatIcon,
-    MatMenu,
-    MatMenuItem,
-    MatMenuTrigger,
     Slide
   ],
   templateUrl: "./sidebar.html",
@@ -32,14 +26,9 @@ export type SlideReorder = Pick<CdkDragDrop<readonly SlideModel[]>, "previousInd
 export class Sidebar {
   readonly slides = input.required<readonly SlideModel[]>();
   readonly activeIndex = input.required<number>();
-  readonly exporting = input(false);
 
   readonly slideSelected = output<number>();
   readonly slidesReordered = output<SlideReorder>();
-  readonly pdfRequested = output<void>();
-  readonly jsonRequested = output<void>();
-  readonly openRequested = output<void>();
-  readonly opening = input(false);
 
   private readonly thumbnailButtons = viewChildren<ElementRef<HTMLButtonElement>>("thumbnail");
 

@@ -1,10 +1,11 @@
 import { moveItemInArray } from "@angular/cdk/drag-drop";
 import { BreakpointObserver } from "@angular/cdk/layout";
 import type { MatDrawerMode } from "@angular/material/sidenav";
-import { MatIconButton } from "@angular/material/button";
+import { MatButton, MatIconButton } from "@angular/material/button";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { MatCard, MatCardActions, MatCardContent } from "@angular/material/card";
 import { MatIcon } from "@angular/material/icon";
+import { MatMenu, MatMenuItem, MatMenuTrigger } from "@angular/material/menu";
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
 import { MatSidenavContainer, MatSidenavContent, MatSidenav } from "@angular/material/sidenav";
 import { MatToolbar } from "@angular/material/toolbar";
@@ -25,11 +26,15 @@ import { Slide } from "../slide/slide";
   imports: [
     Sidebar,
     Slide,
+    MatButton,
     MatCard,
     MatCardActions,
     MatCardContent,
     MatIconButton,
     MatIcon,
+    MatMenu,
+    MatMenuItem,
+    MatMenuTrigger,
     MatProgressSpinner,
     MatSnackBarModule,
     MatSidenav,
