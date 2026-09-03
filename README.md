@@ -36,7 +36,7 @@ npm run preview  # Preview the production build locally
 
 ## Docker deployment
 
-Build and run the production image:
+For a local, non-TLS container:
 
 ```bash
 docker build -t slide-deck-generator .
@@ -45,14 +45,23 @@ docker run --rm -p 3001:3001 \
   slide-deck-generator
 ```
 
-Or use Compose:
+For HTTPS deployment on this VPS, keep the existing `kayosh.xyz` site unchanged and add a DNS `A`/`AAAA` record for
+`slides.kayosh.xyz` pointing to the VPS. Allow TCP ports 80 and 443 through the VPS firewall, then add the contents of
+`Caddyfile` to the existing host-level Caddy configuration. The existing Caddy instance will obtain and renew the TLS
+certificate automatically.
+
+Start the application:
 
 ```bash
-docker compose up --build
+docker compose up -d --build
 ```
 
-Open `http://127.0.0.1:3001`. The named Docker volume preserves changes made through the API; the initial
-`data/deck.json` is copied into an empty volume on first startup. Set `SLIDE_DECK_PORT` to change the host port.
+Open `https://slides.kayosh.xyz`. The application port 3001 is bound only to VPS loopback and is not publicly exposed.
+Use `docker compose logs -f slide-deck` to inspect application issues and your host Caddy logs for certificate or proxy
+issues.
+
+The named Docker volume preserves changes made through the API; the initial `data/deck.json` is copied into an empty
+volume on first startup.
 
 ## Project structure
 

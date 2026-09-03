@@ -6,7 +6,7 @@ info:
     is authoritative for supported slide layouts and fields. Prefer PATCH for localized edits and PUT only for complete
     replacement.
 servers:
-  - url: https://159.195.7.18
+  - url: https://slides.kayosh.xyz
     description: HTTPS API server
 paths:
   /api/deck:
